@@ -4,6 +4,8 @@ __version__ = '0.0.1'
 
 
 from shmm import *
-from .inp import *
-from . import viz
+from .shmm import load_template
+from .inp import INP
+from . import utils
+from . import gis
 from .tests import test

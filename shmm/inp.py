@@ -5,35 +5,102 @@
 from copy import deepcopy
 from textwrap import dedent
 from io import StringIO
+import warnings
 
 import numpy
 import pandas
 
 from hymo import SWMMInpFile
 
+#ignore hymo warnings
+warnings.filterwarnings("ignore")
+
 
 class INP(SWMMInpFile):
-    def __init__(self, path):
+    def __init__(self, path,  remove_dummies=True):
+        """A pandas.DataFrame representation of the SWMM .inp file.
+        Any attributes modified in this class are also modified in the modified_file property.
+        """
         SWMMInpFile.__init__(self, path)
 
         self._blacklist = ['copy', 'evaporation',
                            'endline', 'map', 'options',
-                           'path', 'pollutants', 'raingages',
-                           'report', 'symbols', 'temperature', 'title',
+                           'path', 'pollutants',
+                           'report', 'temperature', 'title',
                            'pos', 'startswith'
                           ]
-
-        self.startswith = '!' # template params to remove
+        self._remove_dummies = remove_dummies
+        self._startswith = '!' # template params to remove
         self._modified_file = self.orig_file.copy()
         self._pos = None
 
+    def __getitem__(self, key):
+        return self.__getattribute__(key)
+
+    def __setitem__(self, key, value):
+        self.__dict__['_' + key] = value
+
+    def remove_dummy(self, df):
+        return df.loc[df.index.map(lambda x: not x.startswith(self._startswith))]
+
+    def copy(self):
+        """
+        Returns a deep copy of self.
+        """
+        return deepcopy(self)
+
+    def _update_element(self, element, value):
+        """
+        Updates self.modified_file from the modified dataframe attribute.
+        """
+        str_kwrgs = dict(header=False, index=False, col_space=10, justify='left', na_rep='')
+
+        skiprows = self.find_block(element, lookup=self._modified_file)
+        skipfooter = self._find_end(skiprows, self.endline, lookup=self._modified_file)
+
+        self[element] = value
+        self._modified_file[skiprows:-skipfooter] = [self[element].reset_index().to_string(**str_kwrgs) + '\n'*2]
+
+    def _update_inp(self):
+        for attribute in self.known_attributes:
+            self._update_element(attribute, self[attribute])
+
+    def _clean_template(self):
+        for attribute in self.known_attributes:
+            df = self[attribute].copy()
+            if self._remove_dummies:
+                df = self.remove_dummy(df)
+            if df.shape[0] == 0:
+                df.loc[' '] = [' ']*df.shape[1]
+            self._update_element(attribute, df)
+
+    def write_SWMMInp(self, path):
+        self._clean_template()
+        s = (''.join(self.modified_file))
+
+        with open(path, 'w') as openfile:
+            openfile.write(s)
+
+    def validate_setter(self, attribute, value):
+        if isinstance(value, pandas.DataFrame):
+            assert numpy.all(value.columns == self[attribute].columns)
+            return value
+        else:
+            raise(ValueError)
+
     @property
     def modified_file(self):
+        """
+        Returns the modified SWMM .inp
+        """
         self._update_inp()
         return self._modified_file
 
     @property
     def known_attributes(self):
+        """
+        Returns a list of the current SWMM model cards in use.
+        """
 
         ka = [_ for _ in dir(self) if '_' not in _ and _.islower() and _ not in self._blacklist]
 
@@ -49,51 +116,6 @@ class INP(SWMMInpFile):
                 next
 
         return attr
-
-    def __getitem__(self, key):
-        return self.__getattribute__(key)
-
-    def __setitem__(self, key, value):
-        self.__dict__['_' + key] = value
-
-    def copy(self):
-        return deepcopy(self)
-
-    def _update_element(self, element, value):
-        str_kwrgs = dict(header=False, index=False, col_space=10, justify='left', na_rep='')
-
-        skiprows = self.find_block(element, lookup=self._modified_file)
-        skipfooter = self._find_end(skiprows, self.endline, lookup=self._modified_file)
-
-        self[element] = value
-        self._modified_file[skiprows:-skipfooter] = [self[element].reset_index().to_string(**str_kwrgs) + '\n'*2]
-
-    def _update_inp(self):
-        for ka in self.known_attributes:
-            self._update_element(ka, self[ka])
-
-    def clean_template(self):
-        for ka in self.known_attributes:
-
-            cleaned_df = self[ka].loc[self[ka].index.map(lambda x: not x.startswith('!'))]
-
-            if cleaned_df.shape[0] == 0:
-                cleaned_df.loc[' '] = [' ']*cleaned_df.shape[1]
-
-            self._update_element(ka, cleaned_df)
-
-    def write_SWMMInp(self, path):
-        s = (''.join(self.modified_file))
-
-        with open(path, 'w') as openfile:
-            openfile.write(s)
-
-    def validate_setter(self, attribute, value):
-        if isinstance(value, pandas.DataFrame):
-            assert numpy.all(value.columns == self[attribute].columns)
-            return value
-        else:
-            raise(ValueError)
 
     @property
     def pos(self):
