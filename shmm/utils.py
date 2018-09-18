@@ -3,6 +3,7 @@ from textwrap import dedent
 import pandas as pd
 
 def _formatter(df, filter_fnx, new_columns, fillna):
+    """Formatter helper function. Filters and renames"""
     if filter_fnx:
         df = df.copy().loc[filter_fnx]
 
@@ -17,6 +18,8 @@ def format_subarea_table(df, fillna=-999, filter_fnx=None, n_imperv_col='N_Imper
                          n_perv_col='N_Perv', s_imperv_col='S_Imperv',
                          s_perv_col='S_Perv', pct_zero_col='PctZero',
                          route_to_col='RouteTo', pct_routed_col='PctRouted'):
+
+    """Formatter helper function for the sub areas card."""
     new_columns = {
         n_imperv_col: 'N_Imperv',
         n_perv_col: 'N_Perv',
