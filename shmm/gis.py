@@ -47,13 +47,20 @@ def make_polygon(catchments, index_col='index'):
     for name, g in df.groupby(df.index):
         subcatchment = g.geometry[0]
 
-        polygons = polygons.append(
-            pd.DataFrame(list(subcatchment.exterior.coords), columns=['X_Coord', 'Y_Coord', 'z'])
-                .assign(Subcatchment=name)
+        try:
+            polygons = polygons.append(
+                pd.DataFrame(list(subcatchment.exterior.coords), columns=['X_Coord', 'Y_Coord', 'z'])
+                    .assign(Subcatchment=name)
+                    .drop('z', axis=1)
 
-        )
+            )
+        except AssertionError:
+            polygons = polygons.append(
+                pd.DataFrame(list(subcatchment.exterior.coords), columns=['X_Coord', 'Y_Coord'])
+                    .assign(Subcatchment=name)
 
-    return polygons.drop('z', axis=1).set_index('Subcatchment')
+            )
+    return polygons.set_index('Subcatchment')
 
 
 def make_coordinates(df, index_col='index'):
