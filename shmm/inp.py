@@ -75,6 +75,7 @@ class INP(SWMMInpFile):
             self._update_element(attribute, df)
 
     def write_SWMMInp(self, path):
+        self._update_inp()
         self._clean_template()
         s = (''.join(self.modified_file))
 
@@ -293,3 +294,8 @@ class INP(SWMMInpFile):
     def pollutants(self, val):
         new_val = self.validate_setter('pollutants', val)
         self._pollutants = new_val
+
+    @SWMMInpFile.inflows.setter
+    def inflows(self, val):
+        new_val = self.validate_setter('inflows', val)
+        self._inflows = new_val

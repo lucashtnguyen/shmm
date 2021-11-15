@@ -210,6 +210,11 @@ template = dedent("""\
     !Conduit_2       CIRCULAR     1                0          0          0          1
     !Weir            RECT_OPEN    1                1          0          0
 
+    [INFLOWS]
+    ;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern
+    ;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------
+    !TS1               FLOW             TS               FLOW     1.0      1.0              
+
     [TIMESERIES]
     ;;Name           Date       Time       Value
     ;;-------------- ---------- ---------- ----------
