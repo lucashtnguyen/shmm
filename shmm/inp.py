@@ -23,11 +23,19 @@ class INP(SWMMInpFile):
         """
         SWMMInpFile.__init__(self, path)
 
-        self._blacklist = ['copy', 'evaporation',
-                           'endline', 'map', 'options',
-                           'path', 'pollutants',
-                           'report', 'temperature', 'title',
-                           'pos', 'startswith'
+        self._blacklist = [
+            'copy',
+            'evaporation',
+            'endline',
+            'map',
+            # 'options',
+            'path',
+            'pollutants',
+            'report',
+            'temperature',
+            'title',
+            'pos',
+            'startswith'
                           ]
         self._remove_dummies = remove_dummies
         self._startswith = '!' # template params to remove
@@ -299,3 +307,13 @@ class INP(SWMMInpFile):
     def inflows(self, val):
         new_val = self.validate_setter('inflows', val)
         self._inflows = new_val
+
+    @SWMMInpFile.pumps.setter
+    def pumps(self, val):
+        new_val = self.validate_setter('pumps', val)
+        self._pumps = new_val
+
+    @SWMMInpFile.outlets.setter
+    def outlets(self, val):
+        new_val = self.validate_setter('outlets', val)
+        self._outlets = new_val

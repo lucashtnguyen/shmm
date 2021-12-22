@@ -136,7 +136,7 @@ template = dedent("""\
     REPORT_STEP          00:15:00
     WET_STEP             00:05:00
     DRY_STEP             01:00:00
-    ROUTING_STEP         0:00:30
+    ROUTING_STEP         0:00:30 
 
     INERTIAL_DAMPING     PARTIAL
     NORMAL_FLOW_LIMITED  BOTH
@@ -158,67 +158,96 @@ template = dedent("""\
     DRY_ONLY         NO
 
     [RAINGAGES]
-    ;;Name           Format    Interval SCF      Source
+    ;;Name           Format    Interval SCF      Source    
     ;;-------------- --------- ------ ------ ----------
-    !1                INTENSITY 1:00     1.0      TIMESERIES *
+    !1               INTENSITY 1:00     1.0      TIMESERIES *               
 
     [SUBCATCHMENTS]
-    ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack
+    ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
     ;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
-    !Subcatchment_1  *                !Node_1          5        25       500      0.5      0
+    !Subcatchment_1  *                !Node_1          5        25       500      0.5      0                        
 
     [SUBAREAS]
-    ;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted
+    ;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
     ;;-------------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    !Subcatchment_1  0.01       0.1        0.05       0.05       25         OUTLET
+    !Subcatchment_1  0.01       0.1        0.05       0.05       25         OUTLET    
 
     [INFILTRATION]
-    ;;Subcatchment   Suction    Ksat       IMD
+    ;;Subcatchment   Suction    Ksat       IMD       
     ;;-------------- ---------- ---------- ----------
-    !Subcatchment_1  3.0        0.5        4
+    !Subcatchment_1  3.0        0.5        4         
 
     [JUNCTIONS]
-    ;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded
+    ;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   
     ;;-------------- ---------- ---------- ---------- ---------- ----------
-    !Node_1          0          0          0          0          0
+    !Node_1          0          0          0          0          0         
 
     [OUTFALLS]
-    ;;Name           Elevation  Type       Stage Data       Gated    Route To
+    ;;Name           Elevation  Type       Stage Data       Gated    Route To        
     ;;-------------- ---------- ---------- ---------------- -------- ----------------
-    !Node_3          0          FREE                        NO
+    !Node_3          0          FREE                        NO                       
+
+    [DIVIDERS]
+    ;;Name           Elevation  Diverted Link    Type       Parameters
+    ;;-------------- ---------- ---------------- ---------- ----------
+    !Divider         0          *                CUTOFF     0          0          0          0          0         
 
     [STORAGE]
-    ;;Name           Elev.    MaxDepth   InitDepth  Shape      Curve Name/Params            N/A      Fevap    Psi      Ksat     IMD
+    ;;Name           Elev.    MaxDepth   InitDepth  Shape      Curve Name/Params            N/A      Fevap    Psi      Ksat     IMD     
     ;;-------------- -------- ---------- ----------- ---------- ---------------------------- -------- --------          -------- --------
-    !Node_2          0        0          0          FUNCTIONAL 1000      0         0        0        0
+    !Node_2          0        0          0          FUNCTIONAL 1000      0         0        0        0       
 
     [CONDUITS]
-    ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow
+    ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
     ;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------
-    !Conduit_1       !Node_1          !Node_2          400        0.01       0          0          0          0
-    !Conduit_2       !Node_2          !Node_3          400        0.01       0          0          0          0
+    !Conduit_1       !Node_1          !Node_2          400        0.01       0          0          0          0         
+    !Conduit_2       !Node_2          !Node_3          400        0.01       0          0          0          0         
+
+    [PUMPS]
+    ;;Name           From Node        To Node          Pump Curve       Status   Sartup Shutoff 
+    ;;-------------- ---------------- ---------------- ---------------- ------ -------- --------
+    !Pump            !Node_1          !Node_2          *                ON       0        0       
+
+    [ORIFICES]
+    ;;Name           From Node        To Node          Type         Offset     Qcoeff     Gated    CloseTime 
+    ;;-------------- ---------------- ---------------- ------------ ---------- ---------- -------- ----------
+    !Orifice         !Node_1          !Node_2          SIDE         0          0.65       NO       0         
 
     [WEIRS]
-    ;;Name           From Node        To Node          Type         CrestHt    Qcoeff     Gated    EndCon   EndCoeff   Surcharge  RoadWidth  RoadSurf
+    ;;Name           From Node        To Node          Type         CrestHt    Qcoeff     Gated    EndCon   EndCoeff   Surcharge  RoadWidth  RoadSurf  
     ;;-------------- ---------------- ---------------- ------------ ---------- ---------- -------- -------- ---------- ---------- ---------- ----------
-    !Weir            !Node_2          !Node_3          TRANSVERSE   0          3.33       NO       0        0          YES
+    !Weir            !Node_2          !Node_3          TRANSVERSE   0          3.33       NO       0        0          YES       
+
+    [OUTLETS]
+    ;;Name           From Node        To Node          Offset     Type            QTable/Qcoeff    Qexpon     Gated   
+    ;;-------------- ---------------- ---------------- ---------- --------------- ---------------- ---------- --------
+    !Outlet          !Node_1          !Node_2          0          FUNCTIONAL/DEPTH 10.0             0.5        NO      
 
     [XSECTIONS]
-    ;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert
+    ;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert   
     ;;-------------- ------------ ---------------- ---------- ---------- ---------- ---------- ----------
-    !Conduit_1       CIRCULAR     1                0          0          0          1
-    !Conduit_2       CIRCULAR     1                0          0          0          1
-    !Weir            RECT_OPEN    1                1          0          0
+    !Conduit_1       CIRCULAR     1                0          0          0          1                    
+    !Conduit_2       CIRCULAR     1                0          0          0          1                    
+    !Orifice         CIRCULAR     1                0          0          0
+    !Weir            RECT_OPEN    1                1          0          0         
 
     [INFLOWS]
     ;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern
     ;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------
-    !TS1               FLOW             TS               FLOW     1.0      1.0              
+    !Node_1          FLOW             TS               FLOW     1.0      1.0              
+
+    [CURVES]
+    ;;Name           Type       X-Value    Y-Value   
+    ;;-------------- ---------- ---------- ----------
+    !A147S           Control    0.49       0         
+    !A147S                      0.5        0.25      
+    !A147S                      0.6        1         
+    !A147S                      0.65       1.5       
 
     [TIMESERIES]
-    ;;Name           Date       Time       Value
+    ;;Name           Date       Time       Value     
     ;;-------------- ---------- ---------- ----------
-    !ts            FILE "C:\.."
+    !ts              FILE "C:\.."
 
     [REPORT]
     ;;Reporting Options
@@ -235,30 +264,33 @@ template = dedent("""\
     Units      None
 
     [COORDINATES]
-    ;;Node           X-Coord            Y-Coord
+    ;;Node           X-Coord            Y-Coord           
     ;;-------------- ------------------ ------------------
-    !Node_1          1839.677           6493.656
-    !Node_3          5080.738           6320.646
-    !Node_2          3673.587           6505.190
+    !Node_1          1839.677           6493.656          
+    !Node_3          5080.738           6320.646          
+    !Divider         1285.047           8084.112          
+    !Node_2          3673.587           6505.190          
 
     [VERTICES]
-    ;;Link           X-Coord            Y-Coord
+    ;;Link           X-Coord            Y-Coord           
     ;;-------------- ------------------ ------------------
-    !Conduit_1       2739.331           7254.902
-    !Conduit_1       3431.373           7266.436
-    !Weir            4504.037           6989.619
+    !Conduit_1       2739.331           7254.902          
+    !Conduit_1       3431.373           7266.436          
+    !Orifice         2768.692           5724.299          
+    !Weir            4504.037           6989.619          
+    !Outlet          2523.364           8072.430          
 
     [Polygons]
-    ;;Subcatchment   X-Coord            Y-Coord
+    ;;Subcatchment   X-Coord            Y-Coord           
     ;;-------------- ------------------ ------------------
-    !Subcatchment_1  -1113.033          5628.604
-    !Subcatchment_1  524.798            5605.536
-    !Subcatchment_1  513.264            7289.504
-    !Subcatchment_1  -1101.499          7301.038
+    !Subcatchment_1  -1113.033          5628.604          
+    !Subcatchment_1  524.798            5605.536          
+    !Subcatchment_1  513.264            7289.504          
+    !Subcatchment_1  -1101.499          7301.038          
 
     [SYMBOLS]
-    ;;Gage           X-Coord            Y-Coord
+    ;;Gage           X-Coord            Y-Coord           
     ;;-------------- ------------------ ------------------
-    !1               1                  2
+    !1               1.000              2.000             
 """
 )
