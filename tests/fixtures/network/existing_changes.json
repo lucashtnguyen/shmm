@@ -1,0 +1,223 @@
+[
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O039067",
+    "values": {
+      "geom1": 1.25
+    },
+    "expected": {
+      "geom1": 1.0
+    },
+    "source_key": "O026658"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O005747",
+    "values": {
+      "geom1": 1.25
+    },
+    "expected": {
+      "geom1": 1.0
+    },
+    "source_key": "O028143"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O048894",
+    "values": {
+      "geom1": 2.0
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O051072"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O045767",
+    "values": {
+      "geom1": 1.5
+    },
+    "expected": {
+      "geom1": 1.0
+    },
+    "source_key": "O009017"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O051997",
+    "values": {
+      "geom1": 1.0
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O006285"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O036441",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O032771"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O033237",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O012525"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O029762",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O006129"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O035945",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O037835"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O005339",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O009620"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O021038",
+    "values": {
+      "geom1": 0.8333333333333334
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O051219"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O011138",
+    "values": {
+      "geom1": 1.0
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O009764"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O044859",
+    "values": {
+      "geom1": 1.0
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O015236"
+  },
+  {
+    "action": "update",
+    "section": "XSECTIONS",
+    "object_id": "O033071",
+    "values": {
+      "geom1": 1.0
+    },
+    "expected": {
+      "geom1": 0.666666667
+    },
+    "source_key": "O011273"
+  },
+  {
+    "action": "add",
+    "section": "JUNCTIONS",
+    "object_id": "O037920",
+    "source_key": "SYNTHETIC_O018551",
+    "values": {
+      "invert_elevation": 152.33,
+      "max_depth": 12,
+      "initial_depth": 0,
+      "surcharge_depth": 0,
+      "ponded_area": 0
+    }
+  },
+  {
+    "action": "add",
+    "section": "COORDINATES",
+    "object_id": "O037920",
+    "source_key": "SYNTHETIC_O018551",
+    "values": {
+      "x": 0.0,
+      "y": 5925.0
+    }
+  },
+  {
+    "action": "add",
+    "section": "CONDUITS",
+    "object_id": "O018551",
+    "source_key": "SYNTHETIC_O018551",
+    "values": {
+      "inlet_node": "O037920",
+      "outlet_node": "O038708",
+      "length": 100,
+      "roughness": 0.013,
+      "inlet_offset": 0,
+      "outlet_offset": 0,
+      "initial_flow": 0,
+      "max_flow": 0
+    }
+  },
+  {
+    "action": "add",
+    "section": "XSECTIONS",
+    "object_id": "O018551",
+    "source_key": "SYNTHETIC_O018551",
+    "values": {
+      "shape": "CIRCULAR",
+      "geom1": 1,
+      "geom2": 0,
+      "geom3": 0,
+      "geom4": 0,
+      "barrels": 1
+    }
+  }
+]

@@ -1,0 +1,33 @@
+# Author: Lucas HT Nguyen
+# Contact: https://github.com/lucashtnguyen
+# Date: 2026-10-13
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shmm"
+version = "0.1.0"
+description = "Apply finished record edits to SWMM models with traceable preservation"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{name = "Lucas HT Nguyen"}]
+dependencies = ["hymo>=0.2.0"]
+
+[project.urls]
+Repository = "https://github.com/lucashtnguyen/shmm"
+Contact = "https://github.com/lucashtnguyen"
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+gis = ["geopandas"]
+
+[tool.setuptools.packages.find]
+include = ["shmm*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

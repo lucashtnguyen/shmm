@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-13",
+  "identity_mapping_field_checks": 360540,
+  "readback_attribute_checks": 1797370,
+  "synthetic_geometry_checks": 15330,
+  "geometry_tolerance_ft": 0.001,
+  "max_geometry_delta_ft": 0.0001220703125,
+  "source_files_unchanged_during_verification": true,
+  "gdb_readback_counts": {
+    "Elevation_Review": 17656,
+    "Major_Pump_Stations": 12,
+    "Model_Only_Updates": 6,
+    "Model_Update_Nodes": 4432,
+    "Model_Update_Pipes": 4396,
+    "Model_Update_Runs": 2040,
+    "Run_Members": 4396,
+    "Scope_Inventory": 4396,
+    "Source_Issues": 1712
+  },
+  "error_count": 0,
+  "status": "passed",
+  "scope": "Original identity field replacement, named-model leakage, local map coordinates and GDB/portable attribute equality; no absolute reidentification guarantee"
+}

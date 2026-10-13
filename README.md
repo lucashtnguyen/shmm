@@ -1,47 +1,259 @@
 # shmm
-shmm: Originally conceived as a way to read shapefiles and then write SWMM .inp, this frame work as been expanded to read, modify, and write SWMM input files. 
 
-# Writing SWMM Based Files
+- Last modified by: Lucas HT Nguyen
+- Contact: [GitHub profile](https://github.com/lucashtnguyen)
+- Date: 2026-10-13
 
-Use the following classes to load SWMM's input and report file: 
-```python
-import shmm
+## Summary
 
-# load a template file to start from a fresh SWMM file, adding data from other sources:
-new_inp = shmm.load_tempalate()
+This is a personal open-source project. Contact the maintainer through the
+[GitHub profile](https://github.com/lucashtnguyen). Project documentation,
+source attribution and package metadata use GitHub contact links rather than
+personal or employer email addresses.
 
-# or load an existing model to modify:
-new_inp = shmm.INP('example.inp')
-```
+SHMM was originally conceived to read shapefiles and write SWMM `.inp` files,
+then expanded to read, modify, and write existing models. The modernization
+goal is to **take finished, model-ready data and apply it to a new or existing
+SWMM model**.
 
-Once a model file is loaded, each card in SWMM's input file is represented as a pandas dataframe. 
-Rows may be appended or modified to add or edit features in the model. 
-```python
-new_inp.conduits = new_inp.conduits.append(example_conduits)
-new_inp.conduits.head()
-```
-```
-Name	Inlet_Node	Outlet_Node	Length	Manning_N	Inlet_Offset	Outlet_Offset	Init_Flow	Max_Flow
-135524	18H3-004C	18H3-014C	445.0	0.013	448.3	447.7	0	0.0
-135524a	18H3-014C	18H3-605C	675.0	0.013	447.7	446.6	0	0.0
-135525	18H1-366C	18H4-105C	280.0	0.013	449.32	448.88	0	0.0
-135525a	18H4-105C	18H3-004C	455.0	0.013	448.88	448.3	0	0.0
-135527a	18H1-143C	18H1-366C	510.0	0.013	450.01	449.32	0	0.0
-```
+SHMM should also support GIS/model comparison so users can inspect the supplied
+data against the baseline and see exactly which changes are going into the model.
+It uses finished object IDs or an explicit crosswalk and distinguishes reported
+differences from requested edits. Comparison can run without modifying a model.
 
-While not needed to run a model, spatial information is nice to have in the SWMM GUI.
-```python
-new_inp.coordinates = simple_inp.coordinates.append(coordinates)
-```
+Resolving asset associations, reach aggregation, scenario selection, datum
+conflicts, and engineering parameters belongs to upstream project workflows.
+SHMM compares finished inputs, validates and applies instructions, preserves
+unrelated content, and records exactly what it wrote.
 
-Once all the needed cards in the .inp are represented, the model is easily written to disk:
-```python
-simple_inp.write_SWMMInp('output/modified_example.inp')
-```
----------
+The [modernization specification](docs/modernization_spec.md) defines the
+boundary, proposed input contract, requirements, acceptance tests, and
+implementation sequence. Oregon City is the first intended integration;
+its scope rules and unresolved GIS questions stay in that project's workflow.
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+### Current status and workflow
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+The first modernization increment is implemented on Python 3.12. **hymo reads
+and interprets model text; SHMM modifies and writes it.** The new path supports
+explicit additions and partial updates of junctions, conduits, circular or
+force-main conduit cross sections, and node coordinates. It preserves unrelated
+text and produces a separate candidate plus a before/after audit.
+
+The larger specification remains a plan for comparison reports, complete GIS
+ingestion, deletion/rewiring, and additional section editing. These features
+are not implied by the initial implementation. The
+[section coverage matrix](docs/swmm_section_coverage.md) inventories 57 EPA
+SWMM 5.2.4 sections and identifies implemented checks and deferred contracts.
+
+The historical package exposes `shmm.load_template()` for the embedded template,
+`shmm.INP(...)` for an existing input file, section tables such as `conduits`
+and `coordinates`, and `write_SWMMInp(...)` for writing a file. Those concepts
+remain available lazily for reference. They do not use the new preserving
+editing path. The old README misspelled `load_template` and used obsolete
+DataFrame append examples; those examples have been retired pending the new
+interface. Legacy sections are represented as pandas DataFrames through `hymo`.
+
+`shmm/gis.py` contains helpers for node coordinates, link vertices, and
+subcatchment polygons. These format map geometry; they do not establish
+hydraulic parameters, units, coordinate systems, or datum validity.
+
+### Inputs, outputs, and QA/QC
+
+- New inputs are an explicit baseline INP and finished `Change` instructions.
+  Each instruction names its action, section, object ID, supplied fields, and
+  stable source key. Optional old-value and baseline-hash preconditions guard
+  against stale inputs. Omitted update fields remain unchanged; null is rejected.
+- `preview_changes` and `apply_changes` return the exact candidate bytes and
+  audit in memory. `edit_model` stages, reads back, and publishes a separate INP
+  followed by its completion JSON audit. Existing files cannot be overwritten.
+- The historical template/table writer remains separate and is not recommended
+  for preservation-sensitive production edits.
+- Modernization requires finished records in target SWMM field units, explicit
+  IDs/operations, and compatible CRS/datum metadata.
+- Planned comparison outputs are structured results, a filterable HTML report,
+  and a CSV change table, with optional change-review map layers. Show baseline
+  and supplied values, adds/updates/deletes, differences outside the edit set,
+  and records that cannot be compared. Numeric deltas use supplied minus baseline.
+- The implemented audit records source keys, before/after fields, model settings,
+  input/output SHA-256 hashes, actual changes, and validation limits. Readback
+  confirms supplied values. The optional pinned engine check is distinct from
+  model application and retains reports and binary results.
+- Manually inspect edits, connectivity, offsets, dimensions, loading references,
+  and geometry. Verify that unrelated controls, loads, and events are retained.
+- Review differences outside the operation set and not-comparable records.
+  Absence from a partial GIS export does not authorize model deletion.
+
+### Limitations and unresolved information
+
+The legacy writer broadly rewrites sections and suppresses warnings. Its
+formatters may use missing-data sentinels; old geometry helpers have limited
+dimensionality/type handling. Historical demo tests reference absent APIs and
+are retained outside the active modern test suite.
+
+The new editor checks finite SWMM numeric syntax, supported engineering bounds,
+IDs, node/link references, required cross sections, instruction conflicts, and
+preconditions. DEPTH offsets are nonnegative relative heights; ELEVATION offsets
+are signed absolute elevations and may use `*`. Cross-section diameters use
+length units, not flow units or GIS inches. FORCE_MAIN Geom2 depends on the
+selected friction equation and is not conduit Manning roughness.
+
+Renames, deletion, endpoint rewiring, shape conversion, other cross-section
+shapes, complete loading/control dependencies, and unit/datum conversion are
+deferred and fail explicitly when requested. Nonempty unknown/vendor cards or
+unresolved abbreviated headers block hydraulic edits. Unchanged supported-but-
+deferred cards are preserved, without a claim of full validation. Effective
+initial-depth/crown checks and complete model validity require engine review.
+
+The selected format reference and optional check are EPA SWMM 5.2.4; compatibility
+with other builds or vendor dialects is not established. Two-file publication
+is not a filesystem-wide transaction: an interrupted process can leave a
+candidate without its audit. Consumers must require the completion audit and
+verify its candidate hash.
+
+`shmm/tests/data/base.inp` and the template in `shmm/utils.py` contain historical
+dummy records/settings. They are retained for characterization, not selected as
+Oregon City's baseline or production creation templates.
+
+Open production specification items are `STUB_TARGET_ENGINE`, `STUB_OREGON_CITY_BASELINE`,
+`STUB_FINISHED_DATA_CONTRACT`, `STUB_CREATION_TEMPLATE`, and
+`STUB_BACKEND_AND_DRIVERS`. Their meaning and effect are documented in the
+specification. The coverage matrix also documents explicit section/dependency
+stubs. They are missing functionality, not successful placeholder operations.
+
+### Prepared acceptance fixtures and manual review
+
+`tests/fixtures/network/` contains the coordinated prepared baseline INP,
+rebuilt `updates.gdb`, matching portable `updates.json.gz`, scope/hold inventory,
+and separate existing/future instruction sets. The baseline has 263 conduits,
+263 junctions, four pumps, three storage nodes, and one weir. Fixture preparation,
+anonymization tools, raw exports, private crosswalks, and privacy comparisons
+are maintained outside SHMM and are not included in its commits.
+
+The scoped inventory has 310 candidate pipes: 309 currently included across
+both scenarios (239 priority 1 and 70 priority 2), plus one excluded record.
+Another 243 full-network candidates are outside the prepared subnetwork scope.
+Fourteen reviewed diameter-only patches have exact target/endpoint associations;
+they are independently checked against supplied diameters in inches divided
+by 12 to obtain feet. Other fields remain held for engineering completion.
+
+The existing acceptance case adds one explicitly synthetic pipe and supporting
+node; the future case adds two. Those additions test the generic addition
+contract and are not finished project instructions. The reviewed diameter
+patches currently agree between scenarios; separate tests retain that distinction.
+
+All source asset IDs and map geometry were replaced before delivery. Display
+geometry is synthetic, has no geographic CRS, and must not supply hydraulic
+lengths or elevations. External rainfall was unavailable and was replaced by
+synthetic inline zero rainfall. These fixtures are not hydraulically equivalent
+to the source event. Retained topology and exact hydraulic values can still
+fingerprint a source; no stronger anonymity certification is claimed.
+
+Manual QA/QC should inspect:
+
+- The distinction between reviewed patches, synthetic additions, exclusions,
+  and unresolved field holds in the fixture README and workload inventory.
+- Candidate endpoints, cross sections, dimensions, offset mode, and native units.
+- Audit fields and hashes, including source keys and the explicit engine status.
+- Retention of pumps, storage, DWF, RDII, inflows, patterns, curves, and event settings.
+- Engine warnings and continuity results; input acceptance is not calibration.
+
+## Developer README
+
+### Repository structure
+
+- `shmm/inp.py`: legacy model wrapper and section writing.
+- `shmm/editing.py`: explicit edit planning, preview, validation, publication, audit.
+- `shmm/engine.py`: optional explicitly selected/pinned engine check.
+- `shmm/shmm.py`: template loader.
+- `shmm/gis.py`: map-geometry table helpers.
+- `shmm/utils.py`: section formatters and embedded template.
+- `shmm/tests/`: historical tests and fixtures.
+- `tests/`: active modern preservation, editing, fixture, and engine tests.
+- `examples/edit_fixture.py`: editable VS Code example; no required CLI.
+- `docs/`: Sphinx documentation and modernization specification.
+- `pyproject.toml`: Python 3.12 packaging and active pytest configuration.
+- `requirements_dev.txt`, `tox.ini`, `.travis.yml`: historical setup references;
+  their obsolete versions are not the modern installation workflow.
+
+### Environment and execution
+
+Use Python 3.12 in a dedicated environment and select its interpreter in VS Code.
+With the updated hymo checkout beside SHMM, create `.venv` using
+`python -m venv .venv` from a Python 3.12 interpreter. On Windows, install both
+checkouts with `.venv/Scripts/python.exe -m pip install -e ../hymo -e ".[test]"`.
+SHMM requires hymo 0.2.0, which provides the new document/schema interface;
+installing an older published hymo is insufficient. Publication to PyPI is not
+part of this change. GIS extras are optional; the core editor has no ArcGIS
+dependency. Existing hymo table/report readers retain their pandas dependency.
+
+Verification used Python 3.12.13, pytest 9.1.1, pandas 3.0.6, and NumPy 2.5.4.
+These are tested versions, not a complete lockfile or a guarantee for all future
+dependency releases.
+The [verification record](docs/verification.md) records test counts, packaging
+checks, prepared-input QA and engine observations for this increment.
+
+Do not use `Make_env.bat` to establish the new environment: it removes an
+existing named environment and creates an old Python 3.6 setup. Keep ArcGIS
+export/reconciliation workflows separate from the SHMM runtime.
+
+The library interface is primary. Read with `hymo.read_document`, construct
+`shmm.Change` records, preview with `shmm.preview_changes`, and apply in memory
+with `shmm.apply_changes`. Use `shmm.edit_model` with explicit source/candidate/
+audit paths for publication. Edit `SCENARIO` and `REVIEWED_ONLY` in
+`examples/edit_fixture.py`, then run that file in VS Code to exercise a prepared
+case. Outputs go to `.cache/fixture_demo/<scenario>_<UTC run ID>/candidate.inp`
+and `audit.json`; source fixtures remain unchanged. `DEBUG` controls example
+logging and defaults to false.
+
+`shmm.engine.check_engine` requires explicit executable/library paths, an expected
+EPA version integer, and an existing output directory. It verifies both version
+sources, retains report/binary artifacts, parses report errors independently of
+the executable return code, and checks input nonmutation. Its returned record
+contains a pass/failure result and artifact hashes. Engine artifacts are separate
+from the application audit, whose engine status remains `not run`.
+
+### Tests, diagnostics, and maintenance
+
+Run `.venv/Scripts/python.exe -m pytest tests -q` from SHMM. In restricted
+environments, supply a writable `--basetemp .cache/pytest-run-<unique ID>`.
+Never reuse a basetemp containing files you need: pytest manages its contents.
+The active suite covers byte preservation, partial edits, additions, preconditions,
+invalid values, dependency checks, transaction failures, realistic prepared
+fixtures, and newer-card lexical preservation.
+
+Engine tests opt in through `SWMM_ENGINE` (EPA executable path) and `SWMM_LIBRARY`
+(solver library path), pinned to version integer 52004. Without these explicit
+settings, engine integration tests skip with a reason; mock-based engine failure
+tests still run. The baseline, existing, and future prepared models have distinct
+engine checks. No continuity acceptance threshold is invented.
+The rebuilt FileGDB is versioned in the repository for GIS inspection; ordinary
+tests and source distributions use its portable counterpart. Ignore temporary
+FileGDB lock files when reviewing commits.
+
+The pinned 5.2.4 checks accepted the prepared baseline and both candidate
+scenarios. All three reports retain warning 09 (synthetic rainfall interval)
+and warning 02 (an inherited node's maximum depth is increased by the engine).
+Flow-routing continuity errors were -0.495%, -0.228%, and -0.050% respectively.
+These are recorded observations under synthetic zero rainfall, not supplied
+project acceptance tolerances or proof of hydraulic equivalence.
+
+Run hymo's own tests from its checkout with the same environment; its full suite
+also checks legacy reader behavior. Historical SHMM demo tests remain available
+for reference under `shmm/tests/`, but are not a modern acceptance gate.
+
+The modern path uses module logging and explicit errors without global warning
+suppression. Do not import the legacy writer to perform new edits. Extension
+work starts with a hymo schema/reading contract, then SHMM validation, editing,
+preservation and engine tests before changing the coverage matrix. Full GIS
+comparison reports, modern CI, and formatting/linting configuration remain
+planned; no claim of those features is made.
+
+Use the GitHub profile for author-contact attribution in new files. Package
+authors have names only; project contact links are in `project.urls`. The legacy
+`shmm.__email__` attribute is empty and `shmm.__contact__` provides the GitHub
+profile. Repository-local Git identity uses a GitHub noreply address for commits.
+
+Preserve the BSD license and useful history. The package originated from
+[Cookiecutter](https://github.com/cookiecutter/cookiecutter) and its
+[Python package template](https://github.com/audreyr/cookiecutter-pypackage).
 

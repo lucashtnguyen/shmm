@@ -1,0 +1,76 @@
+{
+  "author": "Lucas HT Nguyen",
+  "contact": "https://github.com/lucashtnguyen",
+  "date": "2026-10-13",
+  "generated": true,
+  "section_counts": {
+    "TITLE": 0,
+    "OPTIONS": 26,
+    "EVAPORATION": 2,
+    "RAINGAGES": 1,
+    "JUNCTIONS": 263,
+    "OUTFALLS": 2,
+    "STORAGE": 3,
+    "CONDUITS": 263,
+    "PUMPS": 4,
+    "WEIRS": 1,
+    "XSECTIONS": 264,
+    "LOSSES": 0,
+    "INFLOWS": 265,
+    "DWF": 264,
+    "HYDROGRAPHS": 32,
+    "RDII": 265,
+    "CURVES": 17,
+    "TIMESERIES": 3,
+    "PATTERNS": 24,
+    "REPORT": 5,
+    "TAGS": 260,
+    "MAP": 2,
+    "COORDINATES": 268,
+    "VERTICES": 559,
+    "SYMBOLS": 0
+  },
+  "dataset_counts": {
+    "Model_Update_Runs": 2040,
+    "Model_Update_Pipes": 4396,
+    "Model_Update_Nodes": 4432,
+    "Model_Only_Updates": 6,
+    "Major_Pump_Stations": 12,
+    "Run_Members": 4396,
+    "Elevation_Review": 17656,
+    "Source_Issues": 1712,
+    "Scope_Inventory": 4396
+  },
+  "limitations": [
+    "External rainfall replaced by synthetic inline zero forcing; not hydraulically equivalent",
+    "Retained topology and hydraulic values can fingerprint the source. Not certified anonymous for external release.",
+    "Full-network GIS workload compared against a different baseline; applicability is screened, not confirmed engineering scope.",
+    "Live GIS decisions retained; later workbook-only review metadata is not silently merged."
+  ],
+  "geometry": "Synthetic endpoint-based local display coordinates in feet; unknown CRS; original geometry removed",
+  "private_crosswalk_distributed": false,
+  "scenario_summary": {
+    "existing": {
+      "included_candidates": 309,
+      "applicable_candidates": 309,
+      "held_candidates": 309,
+      "priority_counts": {
+        "1": 239,
+        "2": 70
+      },
+      "operation_count": 14,
+      "diameter_only_partial_candidates": 14
+    },
+    "future": {
+      "included_candidates": 309,
+      "applicable_candidates": 309,
+      "held_candidates": 309,
+      "priority_counts": {
+        "1": 239,
+        "2": 70
+      },
+      "operation_count": 14,
+      "diameter_only_partial_candidates": 14
+    }
+  }
+}

@@ -1,0 +1,33 @@
+[
+  {
+    "object_id": "O018551",
+    "new_node_id": "O037920",
+    "inlet_node": "O037920",
+    "outlet_node": "O038708",
+    "length_ft": 100,
+    "roughness": 0.013,
+    "diameter_ft": 1,
+    "new_node_invert_ft": 152.33,
+    "new_node_max_depth_ft": 12,
+    "scenarios": [
+      "existing",
+      "future"
+    ],
+    "basis": "SYNTHETIC TEST PARAMETERS; source decisions are identical; future-only membership exercises independent test selection"
+  },
+  {
+    "object_id": "O030592",
+    "new_node_id": "O046407",
+    "inlet_node": "O046407",
+    "outlet_node": "O026648",
+    "length_ft": 100,
+    "roughness": 0.013,
+    "diameter_ft": 1,
+    "new_node_invert_ft": 394.85,
+    "new_node_max_depth_ft": 12,
+    "scenarios": [
+      "future"
+    ],
+    "basis": "SYNTHETIC TEST PARAMETERS; source decisions are identical; future-only membership exercises independent test selection"
+  }
+]

@@ -1,0 +1,6 @@
+# Author: Lucas HT Nguyen
+# Contact: https://github.com/lucashtnguyen
+# Date: 2026-10-13
+
+# FileGDB sidecars can look textual to Git; every byte belongs to the database.
+tests/fixtures/network/updates.gdb/** -text -diff -merge

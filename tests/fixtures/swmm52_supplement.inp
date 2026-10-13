@@ -1,0 +1,98 @@
+; Synthetic SWMM 5.2 syntax supplement for preservation tests.
+; Author: Lucas HT Nguyen
+; Contact: https://github.com/lucashtnguyen
+; Date: 2026-10-13
+; Manually maintained; arbitrary values and invented object names.
+; This is a lexical fixture, not a complete or engine-certified model.
+; The vendor section intentionally prevents claiming EPA engine acceptance.
+; Basis: EPA SWMM 5.2 manual Appendix D, supplemented by v5.2.4 solver:
+; https://www.epa.gov/system/files/documents/2022-04/swmm-users-manual-version-5.2.pdf
+; https://github.com/USEPA/Stormwater-Management-Model/tree/v5.2.4/src/solver
+
+[TITLE]
+Synthetic syntax supplement: preserved future sections
+
+[OPTIONS]
+FLOW_UNITS CMS
+FLOW_ROUTING DYNWAVE
+LINK_OFFSETS ELEVATION
+FORCE_MAIN_EQUATION D-W
+START_DATE 01/01/2020
+END_DATE 01/02/2020
+
+[JUNCTIONS]
+; ID   Elevation  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+001    -2.0       4         0          0               0
+J2     -3.0       4         0          0               0
+
+[OUTFALLS]
+OUT1 -4 FREE NO
+
+[STORAGE]
+; SWMM 5.2 analytical storage shape; dimensions are illustrative metres.
+WELL1 -3 5 0 CYLINDRICAL 2.5 2.5 0 0 0
+
+[CONDUITS]
+PIPE1 001 J2 15 0.013 * -2.5 0 0
+ROAD1 J2 OUT1 20 0.016 * * 0 0
+
+[PUMPS]
+PUMP1 WELL1 J2 AFFINITY ON 1.5 0.5
+
+[XSECTIONS]
+PIPE1 CIRCULAR 0.3 0 0 0 1 0
+ROAD1 STREET ROAD_SECTION
+
+[STREETS]
+ROAD_SECTION 4 0.15 2 0.016 0 0 2 0 0 0
+
+[INLETS]
+; Repeated design ID is intentional for a combination inlet.
+COMBO1 GRATE 0.6 0.6 P_BAR-30
+COMBO1 CURB 1.2 0.15 HORIZONTAL
+CUSTOM1 CUSTOM CAPTURE
+
+[INLET_USAGE]
+ROAD1 COMBO1 J2 1 10 0 0 0 ON_GRADE
+
+[CURVES]
+AFFINITY PUMP5 0 0.15
+AFFINITY 3 0.1
+AFFINITY 6 0
+CAPTURE DIVERSION 0 0
+CAPTURE 0.1 0.06 0.2 0.12
+
+[CONTROLS]
+VARIABLE WellDepth = NODE WELL1 DEPTH
+EXPRESSION DepthMargin = WellDepth - 0.5
+RULE SYNTHETIC_CONTROL
+IF DepthMargin > 1
+THEN PUMP PUMP1 SETTING = 0.75
+ELSE PUMP PUMP1 STATUS = OFF
+PRIORITY 1
+
+[TIMESERIES]
+; Quoted path is fictional and intentionally not supplied.
+EXTERNAL_SERIES FILE "resources/synthetic rain.dat"
+INLINE_SERIES 01/01/2020 00:00 0 01:00 1
+INLINE_SERIES 02:00 0
+
+[EVENTS]
+01/01/2020 00:00 01/01/2020 06:00
+
+[GWF]
+; Formula text must survive without being interpreted by SHMM.
+SYNTHETIC_CATCHMENT LATERAL 0.001 * (Hgw - Hsw)
+
+[LID_CONTROLS]
+BIO1 BC
+BIO1 SURFACE 150 0 0.1 1 0
+BIO1 SOIL 500 0.45 0.2 0.1 10 10 100
+BIO1 STORAGE 300 0.75 5 0
+
+[ADJUSTMENTS]
+RAINFALL 1 1 1 1 1 1 1 1 1 1 1 1
+
+[VENDOR_EXTENSION]
+; This section has no EPA semantics. Preserve it; do not infer dependencies.
+INVENTED_KEY "opaque value" 0007

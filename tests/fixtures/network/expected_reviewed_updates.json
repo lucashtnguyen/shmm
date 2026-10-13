@@ -1,0 +1,198 @@
+[
+  {
+    "source_key": "O026658",
+    "object_id": "O039067",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 1.0,
+    "supplied_diameter_in": 15.0,
+    "expected_ft": 1.25,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O028143",
+    "object_id": "O005747",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 1.0,
+    "supplied_diameter_in": 15.0,
+    "expected_ft": 1.25,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O051072",
+    "object_id": "O048894",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 24.0,
+    "expected_ft": 2.0,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O009017",
+    "object_id": "O045767",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 1.0,
+    "supplied_diameter_in": 18.0,
+    "expected_ft": 1.5,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O006285",
+    "object_id": "O051997",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 12.0,
+    "expected_ft": 1.0,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O032771",
+    "object_id": "O036441",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O012525",
+    "object_id": "O033237",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O006129",
+    "object_id": "O029762",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O037835",
+    "object_id": "O035945",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O009620",
+    "object_id": "O005339",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O051219",
+    "object_id": "O021038",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 10.0,
+    "expected_ft": 0.8333333333333334,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O009764",
+    "object_id": "O011138",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 12.0,
+    "expected_ft": 1.0,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O015236",
+    "object_id": "O044859",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 12.0,
+    "expected_ft": 1.0,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  },
+  {
+    "source_key": "O011273",
+    "object_id": "O033071",
+    "section": "XSECTIONS",
+    "field": "geom1",
+    "baseline_ft": 0.666666667,
+    "supplied_diameter_in": 12.0,
+    "expected_ft": 1.0,
+    "basis": "Reviewed diameter authority; unique matching endpoints and baseline diameter",
+    "scenarios": [
+      "existing",
+      "future"
+    ]
+  }
+]
