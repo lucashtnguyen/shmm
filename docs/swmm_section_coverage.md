@@ -3,6 +3,7 @@
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
 - Date: 2026-10-13
+- Last modified by: Lucas HT Nguyen
 - Maintenance: manually maintained alongside hymo reading and SHMM editing tests.
 
 ## Summary
@@ -47,9 +48,13 @@ legacy preserved text, not certified 5.2.4 syntax.
 ### Section matrix
 
 Every row is lexed and preserved. `Deferred` means field interpretation and
-direct editing are deferred. The four editable rows are the initial scope;
+direct editing are deferred. The editable rows describe the implemented scope;
 the remaining rows describe preservation or narrow dependency inspection only.
 The stub column points to concrete follow-up work below.
+Interior link vertices support explicit add-only geometry sets, with endpoint
+coordinates checked in the final candidate. Appendix D.3 orders interior points
+from inlet to outlet; straight links have no VERTICES rows. These display
+coordinates do not set hydraulic length or elevation.
 
 | Section | Interpretation / checks | Direct edit | Deferred work |
 | --- | --- | --- | --- |
@@ -94,7 +99,7 @@ The stub column points to concrete follow-up work below.
 | TIMESERIES | Deferred | No | TABLES |
 | REPORT | Deferred | No | OPTIONS |
 | COORDINATES | Named fields, finite XY, node | Add/update | MAP_GEOMETRY |
-| VERTICES | Link reference; raw ordered records | No | MAP_GEOMETRY |
+| VERTICES | Ordered finite interior XY; link and endpoint map references | Add set only | MAP_GEOMETRY |
 | POLYGONS | Raw ordered records | No | MAP_GEOMETRY |
 | LABELS | Raw text | No | TEXT_METADATA |
 | SYMBOLS | Deferred | No | MAP_GEOMETRY |
@@ -277,7 +282,7 @@ pretend to succeed. Each marker uses the required project stub convention.
   interpretation requires continuation and optional-field fixtures.
 - TODO: STUB_TABLES — time-series/curve continuations, file references, curve
   types, and ordering constraints require comprehensive parsing.
-- TODO: STUB_MAP_GEOMETRY — vertices, polygons, symbols, map bounds, profiles,
+- TODO: STUB_MAP_GEOMETRY — polygon/symbol edits, map bounds, profiles,
   coordinate metadata, and replacement geometry need explicit contracts.
 - TODO: STUB_LID — multi-record LID controls and usage variants need typed
   readers and dependencies before direct edits are supported.

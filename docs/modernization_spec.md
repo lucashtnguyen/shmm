@@ -10,9 +10,10 @@
 Status: Draft v0.2 for implementation planning. Manually maintained.
 
 Implementation note (2026-10-13): the initial preserving reading/editing
-foundation now exists. hymo 0.2.0 owns immutable document reading and four named
-section schemas; SHMM 0.1.0 owns explicit add/update instructions, previews,
-candidate writing, readback, audits and optional pinned EPA 5.2.4 checks. The
+foundation now exists. hymo 0.2.1 owns immutable document reading, four named
+section schemas, and ordered interior-vertex reading; SHMM 0.1.1 owns explicit
+add/update instructions, add-only link vertices, previews, candidate writing,
+readback, audits and optional pinned EPA 5.2.4 checks. The
 broader comparison, GIS ingestion and dependency-complete operation requirements
 below remain the target design. Repository findings describe the pre-change
 legacy implementation. See the [current README](../README.md) and

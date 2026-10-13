@@ -36,7 +36,8 @@ its scope rules and unresolved GIS questions stay in that project's workflow.
 The first modernization increment is implemented on Python 3.12. **hymo reads
 and interprets model text; SHMM modifies and writes it.** The new path supports
 explicit additions and partial updates of junctions, conduits, circular or
-force-main conduit cross sections, and node coordinates. It preserves unrelated
+force-main conduit cross sections, node coordinates, and add-only interior link
+vertices. It preserves unrelated
 text and produces a separate candidate plus a before/after audit.
 
 The larger specification remains a plan for comparison reports, complete GIS
@@ -63,6 +64,14 @@ hydraulic parameters, units, coordinate systems, or datum validity.
   Each instruction names its action, section, object ID, supplied fields, and
   stable source key. Optional old-value and baseline-hash preconditions guard
   against stale inputs. Omitted update fields remain unchanged; null is rejected.
+- Finished `VertexChange` instructions add ordered interior XY rows through the
+  `vertex_changes` keyword on the same preview/apply/publication transaction.
+  Supply only interior points, ordered inlet to outlet, in the baseline map
+  coordinate system. The target link must exist in the candidate and both
+  endpoint nodes need finite coordinates; same-batch additions are supported.
+  Empty vertices represent a straight link. Existing vertex sets cannot be
+  appended to or replaced. Map geometry never supplies hydraulic length or
+  elevation, and SHMM does not infer or reproject coordinates.
 - `preview_changes` and `apply_changes` return the exact candidate bytes and
   audit in memory. `edit_model` stages, reads back, and publishes a separate INP
   followed by its completion JSON audit. Existing files cannot be overwritten.
@@ -181,7 +190,8 @@ Use Python 3.12 in a dedicated environment and select its interpreter in VS Code
 With the updated hymo checkout beside SHMM, create `.venv` using
 `python -m venv .venv` from a Python 3.12 interpreter. On Windows, install both
 checkouts with `.venv/Scripts/python.exe -m pip install -e ../hymo -e ".[test]"`.
-SHMM requires hymo 0.2.0, which provides the new document/schema interface;
+SHMM 0.1.1 requires hymo >=0.2.1, which provides the document/schema interface
+and ordered interior-vertex reader;
 installing an older published hymo is insufficient. Publication to PyPI is not
 part of this change. GIS extras are optional; the core editor has no ArcGIS
 dependency. Existing hymo table/report readers retain their pandas dependency.
@@ -204,6 +214,14 @@ audit paths for publication. Edit `SCENARIO` and `REVIEWED_ONLY` in
 case. Outputs go to `.cache/fixture_demo/<scenario>_<UTC run ID>/candidate.inp`
 and `audit.json`; source fixtures remain unchanged. `DEBUG` controls example
 logging and defaults to false.
+
+For finished map polylines, construct `shmm.VertexChange(object_id, vertices,
+source_key)` and pass a sequence as `vertex_changes=` to the same library
+operations. Each geometry audit row contains the ordered before/after points;
+the original baseline hash and final candidate hash cover hydraulic and map
+edits together. `hymo.read_vertices` handles ordered geometry reading.
+`tests/test_geometry.py` checks order, untouched vertex bytes, same-batch
+references, invalid coordinates, atomic failure, and publication readback.
 
 `shmm.engine.check_engine` requires explicit executable/library paths, an expected
 EPA version integer, and an existing output directory. It verifies both version

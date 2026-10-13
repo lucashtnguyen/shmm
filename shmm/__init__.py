@@ -10,12 +10,13 @@ from importlib import import_module
 from typing import Any
 
 from .editing import Change, ChangeResult, apply_changes, edit_model, preview_changes
+from .geometry import VertexChange
 
 __author__ = "Lucas HT Nguyen"
 __email__ = ""
 __contact__ = "https://github.com/lucashtnguyen"
-__version__ = "0.1.0"
-__all__ = ["Change", "ChangeResult", "apply_changes", "preview_changes", "edit_model"]
+__version__ = "0.1.1"
+__all__ = ["Change", "ChangeResult", "VertexChange", "apply_changes", "preview_changes", "edit_model"]
 
 
 def __getattr__(name: str) -> Any:

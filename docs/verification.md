@@ -3,6 +3,7 @@
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
 - Date: 2026-10-13
+- Last modified by: Lucas HT Nguyen
 - Maintenance: manually recorded evidence, not an automatically updated badge.
 
 ## Summary
@@ -32,6 +33,24 @@ addition contract. Other project fields remain engineering holds.
   are included in the source archive.
 - The edit-and-run example published separate candidate/audit files for both
   scenarios and verified candidate agreement with preview.
+
+### Add-only link geometry increment
+
+SHMM 0.1.1 adds ordered interior XY through a separate `VertexChange` contract
+in the existing preview/apply/publication transaction. hymo >=0.2.1 reads those
+rows; SHMM retains the original baseline hash and final combined candidate hash.
+Synthetic tests verify input order, same-batch references and coordinates,
+preservation of legacy repeated-ID vertex rows, finite values, straight links,
+readback, and failure without publication. Hydraulic lengths and elevations are
+never inferred from display geometry.
+
+The updated full SHMM suite passed **145 tests**, with five explicit optional
+engine checks skipped because their executable/library variables were not set.
+The geometry increment did not rerun hydraulic engine validation. Diff
+whitespace checks passed. SHMM 0.1.1 wheel/source builds passed; wheel metadata
+requires hymo >=0.2.1 and the geometry module is packaged. Source-archive checks
+confirmed the geometry tests are included and local `.chi`/`.db` files excluded.
+Original fixture/engine results above remain the earlier verification evidence.
 
 ### Prepared input QA/QC
 

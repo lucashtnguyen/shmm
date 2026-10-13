@@ -3,6 +3,7 @@
 Author: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
 Date: 2026-10-13
+Last modified by: Lucas HT Nguyen
 Notes: Manually maintained. hymo reads; SHMM modifies and writes. Values use
 baseline SWMM field units; no hydraulic parameter or datum inference.
 """
@@ -22,6 +23,8 @@ from typing import Any, Mapping, Sequence
 
 from hymo.document import SWMMDocument, SWMMRecord, read_document
 from hymo.schemas import DEFAULTS, FIELDS, REQUIRED, interpret_fields
+
+from .geometry import VertexChange, prepare_vertices, verify_vertices
 
 LOGGER = logging.getLogger(__name__)
 
@@ -278,7 +281,8 @@ def _patch_line(line: str, record: SWMMRecord, section: str, values: Mapping[str
     return result
 
 
-def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expected_hash: str | None = None) -> ChangeResult:
+def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expected_hash: str | None = None,
+                    vertex_changes: Sequence[VertexChange] = ()) -> ChangeResult:
     """Validate a batch and return its exact candidate bytes and audit in memory.
 
     Parameters
@@ -289,6 +293,10 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
         Explicit additions or partial updates; no inferred deletions.
     expected_hash : str, optional
         SHA-256 baseline precondition.
+    vertex_changes : Sequence[VertexChange], optional
+        Add-only ordered interior XY for existing or same-batch links. Their
+        candidate endpoint nodes must have finite COORDINATES. Map geometry
+        never supplies hydraulic lengths or elevations.
 
     Returns
     -------
@@ -369,6 +377,9 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
         audit_rows.append({"action": change.action, "section": section, "object_id": change.object_id,
                            "source_key": change.source_key, "before": before, "after": after,
                            "fields": sorted(supplied), "changed": before is None or any(not _equal(before[name], value, name) for name, value in supplied.items())})
+    vertex_rows, vertex_audit = prepare_vertices(document, vertex_changes)
+    if vertex_rows:
+        additions["VERTICES"] = vertex_rows
     # Insert existing sections right-to-left at original boundaries, then append
     # absent sections separately so inserts never change another source index.
     existing = [(section, rows) for section, rows in additions.items() if section in document.sections]
@@ -393,18 +404,28 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
         observed = _field_values(row["section"], _records(candidate, row["section"])[_key(row["object_id"])])
         if any(not _equal(observed[name], value, name) for name, value in row["after"].items()):
             raise ValueError("Candidate readback disagrees with the edit audit")
+    if vertex_changes:
+        links = {identity: record for section in LINK_SECTIONS
+                 for identity, record in _records(candidate, section).items()}
+        _namespace(candidate, LINK_SECTIONS)
+        verify_vertices(candidate, vertex_audit, links)
+    audit_rows.extend(vertex_audit)
+    interpreted_sections = set(FIELDS) | {"OPTIONS", "TITLE"}
+    if vertex_changes:
+        interpreted_sections.add("VERTICES")
     audit = {"schema_version": "1", "baseline_sha256": digest,
              "candidate_sha256": sha256(candidate.data).hexdigest(), "options": options,
-             "changes": audit_rows, "validation": "supported structural checks passed" if changes else "no-op byte preservation",
-             "engine_check": "not run", "uninterpreted_sections": sorted(set(document.sections) - set(FIELDS) - {"OPTIONS", "TITLE"}),
+             "changes": audit_rows, "validation": "supported structural checks passed" if changes or vertex_changes else "no-op byte preservation",
+             "engine_check": "not run", "uninterpreted_sections": sorted(set(document.sections) - interpreted_sections),
              "validation_limits": ["No complete deferred-card grammar/dependency validation", "No datum or calibrated hydraulic acceptance", "Effective initial-depth/crown checks require engine validation"]}
-    LOGGER.info("Validated %d instructions; candidate SHA-256 %s", len(changes), audit["candidate_sha256"])
+    LOGGER.info("Validated %d instructions; candidate SHA-256 %s", len(changes) + len(vertex_changes), audit["candidate_sha256"])
     return ChangeResult(candidate.data, audit)
 
 
-def apply_changes(document: SWMMDocument, changes: Sequence[Change], *, expected_hash: str | None = None) -> ChangeResult:
+def apply_changes(document: SWMMDocument, changes: Sequence[Change], *, expected_hash: str | None = None,
+                  vertex_changes: Sequence[VertexChange] = ()) -> ChangeResult:
     """Apply in memory; parameters/returns match ``preview_changes`` exactly."""
-    return preview_changes(document, changes, expected_hash=expected_hash)
+    return preview_changes(document, changes, expected_hash=expected_hash, vertex_changes=vertex_changes)
 
 
 def _stage_file(path: Path, data: bytes) -> Path:
@@ -433,7 +454,8 @@ def _publish_file(stage: Path, target: Path) -> None:
 
 
 def edit_model(source_path: str | Path, changes: Sequence[Change], output_path: str | Path,
-               audit_path: str | Path, *, encoding: str = "utf-8", expected_hash: str | None = None) -> ChangeResult:
+               audit_path: str | Path, *, encoding: str = "utf-8", expected_hash: str | None = None,
+               vertex_changes: Sequence[VertexChange] = ()) -> ChangeResult:
     """Publish a separate readback-checked model followed by a completion audit.
 
     Parameters
@@ -446,6 +468,8 @@ def edit_model(source_path: str | Path, changes: Sequence[Change], output_path: 
         Explicit input encoding; no fallback.
     expected_hash : str, optional
         Baseline SHA-256 precondition.
+    vertex_changes : Sequence[VertexChange], optional
+        Add-only finished interior map vertices in the same transaction.
 
     Returns
     -------
@@ -467,7 +491,7 @@ def edit_model(source_path: str | Path, changes: Sequence[Change], output_path: 
         if not path.parent.is_dir():
             raise FileNotFoundError(path.parent)
     document = read_document(source, encoding=encoding)
-    result = apply_changes(document, changes, expected_hash=expected_hash)
+    result = apply_changes(document, changes, expected_hash=expected_hash, vertex_changes=vertex_changes)
     stage = _stage_file(output, result.data)
     audit_stage: Path | None = None
     published_output = False
