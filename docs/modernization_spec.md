@@ -2,24 +2,64 @@
 
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-13
+- Date: 2026-10-14
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-13
+- Date: 2026-10-14
 
-Status: Draft v0.2 for implementation planning. Manually maintained.
+Status: Draft v0.3 for implementation planning. Manually maintained.
 
 Implementation note (2026-10-13): the initial preserving reading/editing
 foundation now exists. hymo 0.2.1 owns immutable document reading, four named
-section schemas, and ordered interior-vertex reading; SHMM 0.1.1 owns explicit
+section schemas, and ordered interior-vertex reading; SHMM 0.1.2 owns explicit
 add/update instructions, add-only link vertices, previews, candidate writing,
 readback, audits and optional pinned EPA 5.2.4 checks. The
-broader comparison, GIS ingestion and dependency-complete operation requirements
+broader GIS ingestion and dependency-complete operation requirements
 below remain the target design. Repository findings describe the pre-change
 legacy implementation. See the [current README](../README.md) and
 [section coverage matrix](swmm_section_coverage.md) for implemented scope.
 
+Implementation note (2026-10-14): SHMM now implements both a preview comparison
+and an independent written-model comparison. Structured JSON, CSV and standalone
+filterable HTML show requests/no-ops, actual effects, missing/unexpected effects,
+source evidence, QA flags and model hashes. Exact-byte reconciliation includes
+opaque source text. Interactive map/profile rendering remains deferred.
+See the [umdev handoff contract](umdev_handoff.md) for implemented APIs and
+comparison strategies; all-section lexical coverage is not a claim of complete
+SWMM semantic interpretation.
+
 ## Summary
+
+### umdev handoff and two-stage manual QA
+
+umdev owns configurable utility GIS interpretation and engineering preparation.
+It supplies scenario-specific finished operations and evidence; SHMM owns
+comparison, safe application, preservation and written-model verification.
+Project configuration, source data, crosswalks and engineering decisions remain
+outside the public SHMM and umdev repos.
+
+The handoff envelope identifies schema version, baseline SHA-256, scenario,
+serialized `Change` and `VertexChange` sequences, evidence keyed by `source_key`,
+and upstream prepared/config/source-manifest identities. SHMM receives finished
+values in baseline units and coordinates. Unresolved assets are upstream holds,
+not zero defaults or implicit deletions.
+
+Before publication, generate a **preview diff** comparing baseline to the
+proposed candidate, including old/new values and units, ordered geometry,
+source basis, QA flags and no-op requests. After publication, re-read the
+actual file with hymo and generate a **written-model diff** using the same
+immutable baseline, requests and evidence. Compare all actual effects against
+independently replayed instructions and require exact expected bytes. Include
+both baseline/candidate hashes and expected candidate hash in the report.
+
+Use unique named-field matching only for verified schemas. Preserve repeated
+ordered rows such as VERTICES; use explicit lexical row comparison for deferred
+cards rather than silently dropping or collapsing them. Full text and exact
+byte comparisons cover opaque tails, comments, whitespace, headers and order.
+Missing requested effects and unrequested effects fail reconciliation, including
+opaque text changes. JSON, CSV and filterable HTML support manual QA; future
+map/profile renderers extend these reports. Upstream engineering QA and optional
+simulation remain distinct from faithful edit verification.
 
 ### Purpose and boundary
 

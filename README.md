@@ -2,7 +2,7 @@
 
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-13
+- Date: 2026-10-14
 
 ## Summary
 
@@ -40,9 +40,11 @@ force-main conduit cross sections, node coordinates, and add-only interior link
 vertices. It preserves unrelated
 text and produces a separate candidate plus a before/after audit.
 
-The larger specification remains a plan for comparison reports, complete GIS
-ingestion, deletion/rewiring, and additional section editing. These features
-are not implied by the initial implementation. The
+SHMM 0.1.2 also produces baseline-to-proposed preview diffs and independent
+baseline-to-written-model diffs, with source evidence and upstream QA flags.
+The larger specification remains a plan for complete GIS ingestion,
+deletion/rewiring, interactive map/profile review, and additional section editing.
+These features are not implied by the current implementation. The
 [section coverage matrix](docs/swmm_section_coverage.md) inventories 57 EPA
 SWMM 5.2.4 sections and identifies implemented checks and deferred contracts.
 
@@ -79,10 +81,15 @@ hydraulic parameters, units, coordinate systems, or datum validity.
   for preservation-sensitive production edits.
 - Modernization requires finished records in target SWMM field units, explicit
   IDs/operations, and compatible CRS/datum metadata.
-- Planned comparison outputs are structured results, a filterable HTML report,
-  and a CSV change table, with optional change-review map layers. Show baseline
-  and supplied values, adds/updates/deletes, differences outside the edit set,
-  and records that cannot be compared. Numeric deltas use supplied minus baseline.
+- Implemented comparison outputs are structured JSON, a standalone filterable
+  HTML report and a CSV table. `preview_model_diff` compares baseline to the
+  proposed candidate before publication; `compare_written_model` compares an
+  actual re-read candidate with baseline and independently replayed requests.
+  Both retain requested operations, no-ops, actual effects, evidence and QA flags.
+  Written verification checks exact expected bytes, including comments and opaque
+  sections, and identifies missing/unexpected effects. Named fields use verified
+  hymo schemas; all other cards use ordered lexical rows without collapsing
+  repeated IDs. Map/profile renderers remain planned.
 - The implemented audit records source keys, before/after fields, model settings,
   input/output SHA-256 hashes, actual changes, and validation limits. Readback
   confirms supplied values. The optional pinned engine check is distinct from
@@ -91,6 +98,22 @@ hydraulic parameters, units, coordinate systems, or datum validity.
   and geometry. Verify that unrelated controls, loads, and events are retained.
 - Review differences outside the operation set and not-comparable records.
   Absence from a partial GIS export does not authorize model deletion.
+
+### umdev handoff and manual review
+
+umdev owns reusable utility GIS configuration, data cleaning, evidence selection,
+engineering parameter assignments and unresolved-data QA. It hands SHMM finished
+`Change`/`VertexChange` instructions, the baseline hash and evidence keyed by
+instruction `source_key`. Keep project GIS, configuration and generated reports
+outside the public repositories. SHMM does not infer parameters from raw GIS.
+
+Generate a preview diff, publish the same instruction sequence with `edit_model`,
+read the actual output with hymo, and generate the written-model diff. Require
+`report['verification']['matches_expected']` before accepting publication
+integrity. Inspect upstream QA flags and model profiles separately; a faithful
+edit does not establish engineering acceptance. `write_diff_reports` publishes
+non-overwriting JSON/CSV/HTML files; filter the HTML by asset ID, source basis or
+QA flag. See the [handoff contract and review procedure](docs/umdev_handoff.md).
 
 ### Limitations and unresolved information
 

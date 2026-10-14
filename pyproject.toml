@@ -1,6 +1,6 @@
 # Author: Lucas HT Nguyen
 # Contact: https://github.com/lucashtnguyen
-# Date: 2026-10-13
+# Date: 2026-10-14
 # Last modified by: Lucas HT Nguyen
 
 [build-system]
@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shmm"
-version = "0.1.1"
+version = "0.1.2"
 description = "Apply finished record edits to SWMM models with traceable preservation"
 readme = "README.md"
 requires-python = ">=3.12"

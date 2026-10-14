@@ -2,11 +2,29 @@
 
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-13
+- Date: 2026-10-14
 - Last modified by: Lucas HT Nguyen
 - Maintenance: manually recorded evidence, not an automatically updated badge.
 
 ## Summary
+
+### Preview and written-model diff increment (2026-10-14)
+
+SHMM 0.1.2 adds standalone JSON/CSV/filterable HTML comparisons before and after
+publication. The upstream umdev handoff carries finished instructions and source
+evidence; SHMM compares actual effects and independently reconstructs the expected
+candidate for exact-byte verification. This checks preservation rather than
+engineering acceptance. See [handoff contract](umdev_handoff.md).
+
+The full Python 3.12 suite passed **172 tests**, with **five optional engine
+checks skipped** because executable/library variables were not set. The 27 new
+synthetic cases cover unrequested parameter/comment/header/whitespace/card changes,
+missing requests, repeated curves and DWF rows, ordered/repeated vertices,
+baseline-only assets, no-ops, opaque tails, malformed candidate rows, source
+evidence, safe HTML/CSV and non-overwriting report publication. The diff increment
+does not change model hydraulics or rerun EPA engine validation.
+
+Earlier verification records below describe their corresponding increments.
 
 The first increment establishes the hymo reading/SHMM editing boundary and
 separate existing/future acceptance cases. It does not apply all candidate
