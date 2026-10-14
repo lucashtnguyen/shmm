@@ -27,6 +27,15 @@ check, even when differences affect only comments or numeric spelling.
 Passing this check establishes faithful model editing, not hydraulic or datum
 acceptance. Review upstream QA flags and resulting profiles separately.
 
+umdev also compares candidate topology against the baseline. Its component and
+directed-route reports distinguish inherited independent basins from new pipe
+islands, and retain held or excluded exact-ID connector evidence. Those reports
+belong alongside both SHMM comparisons in the review package. A possible connector
+does not authorize scope expansion or make its unresolved parameters usable.
+Existing storage can be referenced by finished gravity-conduit instructions while
+its storage profile, curves, coordinates and controls remain preserved. SHMM does
+not derive those endpoint parameters or resolve station/force-main representation.
+
 ### Handoff contract
 
 The project orchestrator passes one scenario per handoff envelope. Required

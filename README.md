@@ -113,7 +113,10 @@ read the actual output with hymo, and generate the written-model diff. Require
 integrity. Inspect upstream QA flags and model profiles separately; a faithful
 edit does not establish engineering acceptance. `write_diff_reports` publishes
 non-overwriting JSON/CSV/HTML files; filter the HTML by asset ID, source basis or
-QA flag. See the [handoff contract and review procedure](docs/umdev_handoff.md).
+QA flag. umdev supplies separate baseline/candidate topology reports for inherited
+basins, introduced islands and possible held connectors. Review these alongside
+both model diffs; SHMM does not resolve connector parameters or station policies.
+See the [handoff contract and review procedure](docs/umdev_handoff.md).
 
 ### Limitations and unresolved information
 
