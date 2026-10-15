@@ -64,6 +64,10 @@ class Change:
         Stable caller-owned instruction key recorded in the audit.
     expected : Mapping[str, Any]
         Optional old-value preconditions; mismatches reject the batch.
+    comment : str, optional
+        Finished, printable single-line inline annotation for a new JUNCTIONS
+        record only. Supply the text without a leading semicolon. Existing
+        record annotations cannot be replaced through an update instruction.
 
     Notes
     -----
@@ -77,6 +81,7 @@ class Change:
     values: Mapping[str, Any]
     source_key: str
     expected: Mapping[str, Any] = field(default_factory=dict)
+    comment: str | None = None
 
 
 @dataclass(frozen=True)
@@ -170,6 +175,32 @@ def _options(document: SWMMDocument) -> dict[str, str]:
 def _field_values(section: str, record: SWMMRecord) -> dict[str, str]:
     """Interpret supported fields while leaving unrecognized tails intact."""
     return interpret_fields(section, record)
+
+
+def _record_comment(document: SWMMDocument, record: SWMMRecord) -> str | None:
+    """Read an inline annotation beyond the final token's verified source span.
+
+    Notes
+    -----
+    Using the token span avoids interpreting a semicolon inside a quoted token
+    as the start of a comment. A single conventional blank after the delimiter
+    is excluded from the returned payload; other comment text stays unchanged.
+    """
+    tail = document.lines[record.line_index][record.spans[-1][1]:].lstrip(" \t")
+    if not tail.startswith(";"):
+        return None
+    payload = tail[1:].rstrip("\r\n")
+    return payload[1:] if payload.startswith(" ") else payload
+
+
+def _validate_comment(change: Change, section: str) -> None:
+    """Limit explicit annotations to printable new-junction inline comments."""
+    if change.comment is None:
+        return
+    if change.action != "add" or section != "JUNCTIONS":
+        raise ValueError("Explicit comments are supported only for new JUNCTIONS records")
+    if not isinstance(change.comment, str) or not change.comment.strip() or not change.comment.isprintable():
+        raise ValueError("Comment must be nonempty printable single-line text")
 
 
 def _validate_fields(section: str, identifier: str, values: Mapping[str, str], options: Mapping[str, str]) -> None:
@@ -346,6 +377,7 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
             raise NotImplementedError(f"STUB_SECTION_EDITING: [{section}] edits are deferred")
         if change.action not in {"add", "update"}:
             raise NotImplementedError("STUB_DELETE_RENAME: only add/update are supported")
+        _validate_comment(change, section)
         identity = _key(_identifier(change.object_id))
         if not isinstance(change.source_key, str) or not change.source_key.strip():
             raise ValueError("An explicit source_key is required")
@@ -386,10 +418,13 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
             _validate_fields(section, change.object_id, after, options)
             highest = max(FIELDS[section].index(name) for name in supplied)
             tokens = [change.object_id] + [after[name] for name in FIELDS[section][:highest + 1]]
-            additions.setdefault(section, []).append(" ".join(tokens) + document.newline)
+            annotation = " ; " + change.comment if change.comment is not None else ""
+            additions.setdefault(section, []).append(" ".join(tokens) + annotation + document.newline)
         audit_rows.append({"action": change.action, "section": section, "object_id": change.object_id,
                            "source_key": change.source_key, "before": before, "after": after,
                            "fields": sorted(supplied), "changed": before is None or any(not _equal(before[name], value, name) for name, value in supplied.items())})
+        if change.comment is not None:
+            audit_rows[-1]["comment"] = change.comment
     vertex_rows, vertex_audit = prepare_vertices(document, vertex_changes)
     if vertex_rows:
         additions["VERTICES"] = vertex_rows
@@ -414,9 +449,12 @@ def preview_changes(document: SWMMDocument, changes: Sequence[Change], *, expect
     if changes:
         _validate_candidate(candidate, touched)
     for row in audit_rows:
-        observed = _field_values(row["section"], _records(candidate, row["section"])[_key(row["object_id"])])
+        record = _records(candidate, row["section"])[_key(row["object_id"])]
+        observed = _field_values(row["section"], record)
         if any(not _equal(observed[name], value, name) for name, value in row["after"].items()):
             raise ValueError("Candidate readback disagrees with the edit audit")
+        if "comment" in row and _record_comment(candidate, record) != row["comment"]:
+            raise ValueError("Candidate inline comment disagrees with the edit audit")
     if vertex_changes:
         links = {identity: record for section in LINK_SECTIONS
                  for identity, record in _records(candidate, section).items()}

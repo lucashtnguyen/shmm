@@ -126,6 +126,43 @@ def test_force_main_and_sealed_connection_have_matching_review_diffs(
     assert source.read_bytes() == data
 
 
+def test_annotated_placeholder_is_written_and_reconciled_as_requested_comment(tmp_path: Path) -> None:
+    """Visible model annotations join their source evidence in both review diffs."""
+    comment = "UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft"
+    changes = [Change("add", "JUNCTIONS", "N3", {
+        "invert_elevation": 7, "max_depth": 12.345,
+    }, "placeholder-profile", comment=comment)]
+    evidence = {"placeholder-profile": {"basis": "missing rim placeholder", "qa_flags": ["rim_review_required"]}}
+    source = tmp_path / "source.inp"
+    target = tmp_path / "candidate.inp"
+    source.write_bytes(BASELINE)
+    baseline = read_document(source)
+    preview = preview_model_diff(baseline, changes, evidence=evidence)
+    edit_model(source, changes, target, tmp_path / "audit.json")
+    written = compare_written_model(baseline, read_document(target), changes, evidence=evidence)
+    assert written.report["verification"]["matches_expected"]
+    assert written.report["effects"] == preview.report["effects"]
+    comment_row = next(row for row in written.report["effects"] if row["field"] == "comment")
+    assert (comment_row["before"], comment_row["after"]) == (None, comment)
+    assert comment_row["source_keys"] == ["placeholder-profile"]
+    assert comment_row["evidence"] == [evidence["placeholder-profile"]]
+    assert comment_row["reconciliation"] == "requested_effect"
+    assert written.report["requested_operations"][0]["comment"] == comment
+    assert b"N3 7 12.345 ; UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft" in target.read_bytes()
+    altered = document(target.read_bytes().replace(comment.encode(), b"rim verified"))
+    mismatch = compare_written_model(baseline, altered, changes, evidence=evidence)
+    assert not mismatch.report["verification"]["matches_expected"]
+    assert mismatch.report["verification"]["unexpected_effects"] == 1
+    altered_comment = next(row for row in mismatch.report["effects"] if row["field"] == "comment")
+    assert altered_comment["reconciliation"] == "unexpected_effect"
+    assert mismatch.report["unexpected_text_diff"]
+    omitted = document(target.read_bytes().replace(b" ; " + comment.encode(), b""))
+    missing = compare_written_model(baseline, omitted, changes, evidence=evidence)
+    assert not missing.report["verification"]["matches_expected"]
+    assert missing.report["verification"]["missing_effects"] == 1
+    assert missing.report["missing_expected_effects"][0]["field"] == "comment"
+
+
 @pytest.mark.parametrize('old,new', [
     (b'N2 8 6', b'N2 9 6'),
     (b'; retained note', b'; changed note'),

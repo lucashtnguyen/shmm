@@ -64,6 +64,22 @@ provisional assumptions. Both review diffs must expose these requested effects.
 The surcharge allowance is additional head above maximum depth before flooding,
 not an established pressure rating. Missing upstream parameters remain holds.
 
+Implemented visible annotation handoff (2026-10-15): an optional `Change.comment`
+contains finished printable single-line text for a newly added JUNCTIONS record.
+SHMM appends it after the inline comment delimiter, verifies it on readback, and
+retains it in the audit and the preview/written-model `comment` effects with the
+instruction's evidence. Newlines, control characters, empty comments, annotations
+on updates and annotations on other card types are rejected. Existing inline
+comments remain untouched. Annotation text never supplies hydraulic field values.
+
+For example, a caller-approved missing-rim placeholder can supply literal
+`max_depth=12.345` and `UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft` (or `m` for SI)
+as its separate comment. Maximum depth stays a depth in native model length units
+under both DEPTH and ELEVATION conduit-offset conventions. The writer does not
+derive a fictitious absolute rim or approve the placeholder; umdev retains the
+missing-rim QA basis and the project decides whether to include that node. Any
+unrequested annotation mutation fails written-model reconciliation.
+
 Before publication, generate a **preview diff** comparing baseline to the
 proposed candidate, including old/new values and units, ordered geometry,
 source basis, QA flags and no-op requests. After publication, re-read the

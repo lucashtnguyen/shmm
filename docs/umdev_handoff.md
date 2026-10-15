@@ -1,8 +1,9 @@
 # umdev to SHMM handoff and manual model QA
 
 - Author: Lucas HT Nguyen
+- Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-14
+- Date: 2026-10-15
 - Status: Implemented comparison API; upstream envelope fields are a versioned contract.
 
 ## Summary
@@ -46,7 +47,10 @@ preparation and remain in its run manifest rather than being inferred by SHMM.
 
 - Each `changes` entry supplies the existing `Change` constructor fields:
   `action`, `section`, `object_id`, `values`, `source_key`, and optional
-  `expected` old values. Only currently implemented add/update sections are
+  `expected` old values and `comment`. The optional comment is nonempty printable
+  single-line text for **new JUNCTIONS only**, written literally after ` ; `;
+  newline/control characters and update annotations are rejected. Existing
+  comments are preserved. Only currently implemented add/update sections are
   accepted. Missing assets never imply deletion.
 - Each `vertex_changes` entry supplies `VertexChange`: `object_id`, ordered
   interior `vertices` XY pairs, `source_key`, and optional `action: "add"`.
@@ -61,6 +65,12 @@ preparation and remain in its run manifest rather than being inferred by SHMM.
   Held or unresolved assets remain in upstream reports instead of being
   converted to zero-valued model edits.
 
+An explicitly authorized missing-rim policy can hand off `max_depth=12.345`
+plus `comment="UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft"` (or `m` for SI).
+This is a visible unresolved-data marker, not a surveyed rim. The literal native
+depth is unchanged by `LINK_OFFSETS ELEVATION`. The caller supplies its QA flag,
+assumption and source evidence; SHMM does not derive or approve the placeholder.
+
 Keep the immutable operation sequence and evidence for all three stages:
 preview, publication, and independent written-model comparison. Changing
 instructions after preview requires a fresh preview and review identity.
@@ -74,6 +84,10 @@ Supported JUNCTIONS, CONDUITS, XSECTIONS and COORDINATES use unique ASCII
 case-insensitive IDs and hymo named-field schemas. Documented optional defaults
 are compared as values. Numeric-equivalent spellings are semantically equal;
 exact-byte reconciliation still detects unrequested reformatting.
+Junction inline annotations have an explicit `comment` effect and retain their
+instruction source keys and evidence. The requested comment also appears in the
+edit audit and requested-operation record. Missing or changed published comment
+text fails reconciliation, even when all hydraulic fields match.
 
 VERTICES compare complete ordered coordinate-token sequences per link, preserving
 repeated rows and bends. Other sections—including curves, timeseries, controls

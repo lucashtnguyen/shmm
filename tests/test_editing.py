@@ -119,6 +119,45 @@ def test_add_supporting_nodes_pipe_xsection_and_missing_coordinate_section() -> 
     assert original.data == BASELINE
 
 
+@pytest.mark.parametrize("offset_option", ["DEPTH", "ELEVATION"])
+def test_new_junction_comment_preserves_literal_placeholder_and_existing_text(offset_option: str) -> None:
+    """An upstream placeholder is a literal depth and visible source annotation."""
+    data = BASELINE.replace(b"LINK_OFFSETS DEPTH", f"LINK_OFFSETS {offset_option}".encode())
+    data = data.replace(b"N1 10 5\r\n", b"N1 10 5 ; retained junction note\r\n")
+    comment = "UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft; engineering review required"
+    instruction = Change("add", "JUNCTIONS", "N3", {
+        "invert_elevation": 7, "max_depth": 12.345,
+    }, "reviewed-placeholder", comment=comment)
+    result = apply_changes(document(data), [instruction])
+    added_line = b"N3 7 12.345 ; " + comment.encode() + b"\r\n"
+    assert result.data == data.replace(b"[OUTFALLS]", added_line + b"[OUTFALLS]")
+    assert result.audit["changes"][0]["comment"] == comment
+    assert document(result.data).records("JUNCTIONS")[-1].tokens == ("N3", "7", "12.345")
+
+
+@pytest.mark.parametrize("payload", ["", " ", "unsafe\n[OPTIONS]", "unsafe\rnode", "tab\tvalue", "nul\0value", "delete\x7f", "separator\u2028line", 123, True])
+def test_new_junction_comment_rejects_empty_control_or_multiline_payload(payload: object) -> None:
+    """Comments cannot inject another record/header or hide control characters."""
+    instruction = Change("add", "JUNCTIONS", "N3", {
+        "invert_elevation": 7, "max_depth": 12.345,
+    }, "invalid-annotation", comment=payload)
+    with pytest.raises(ValueError, match="nonempty printable single-line"):
+        apply_changes(document(), [instruction])
+
+
+@pytest.mark.parametrize("action,section,identifier,values", [
+    ("update", "JUNCTIONS", "N1", {"max_depth": 6}),
+    ("add", "COORDINATES", "N1", {"x": 0, "y": 0}),
+])
+def test_explicit_comment_is_limited_to_new_junctions(
+    action: str, section: str, identifier: str, values: dict[str, object],
+) -> None:
+    """An annotation request cannot replace inherited notes or other card types."""
+    instruction = Change(action, section, identifier, values, "unsupported-annotation", comment="review note")
+    with pytest.raises(ValueError, match="only for new JUNCTIONS"):
+        apply_changes(document(), [instruction])
+
+
 def test_add_to_existing_coordinate_section() -> None:
     """Coordinate additions retain existing coordinates and trailing sections."""
     data = BASELINE.replace(b"[BACKDROP]", b"[COORDINATES]\r\nN1 0 0\r\n[BACKDROP]")

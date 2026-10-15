@@ -140,6 +140,20 @@ allowance suppresses model flooding and is not a verified pressure rating.
 These field meanings follow the [EPA SWMM 5.2 manual](https://www.epa.gov/system/files/documents/2022-04/swmm-users-manual-version-5.2.pdf)
 and [EPA 5.2.4 solver defaults](https://github.com/USEPA/Stormwater-Management-Model/blob/v5.2.4/src/solver/project.c).
 
+For a **new junction**, `Change.comment` can carry an upstream review annotation
+directly into the INP row after ` ; `. It must be nonempty printable single-line
+text; embedded line breaks or control characters are rejected. Comments on
+updates or other section types are unsupported, so existing notes remain intact.
+An upstream missing-rim policy can explicitly supply `max_depth=12.345` and
+`comment="UMDEV_PLACEHOLDER_RIM MaxDepth=12.345 ft"` (or `m` in an SI model).
+SHMM writes that literal **depth** even with `LINK_OFFSETS ELEVATION`; the offset
+setting does not turn junction maximum depth into an absolute elevation. The
+placeholder represents unresolved rim evidence, not a surveyed rim or accepted
+node profile. SHMM does not choose the placeholder or clear its upstream QA hold.
+The annotation appears in the edit audit, as a `comment` effect in both review
+diffs, and in the model itself. Altered or missing written annotations fail
+exact-byte reconciliation.
+
 ### Limitations and unresolved information
 
 The legacy writer broadly rewrites sections and suppresses warnings. Its

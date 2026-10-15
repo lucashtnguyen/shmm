@@ -1,8 +1,9 @@
 """Compare prepared edits and written models for manual engineering review.
 
 Author: Lucas HT Nguyen
+Last modified by: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-14
+Date: 2026-10-15
 Notes: Manually maintained. Interpret source data upstream; compare model effects
 here. Lexical fallback is explicit and does not imply complete SWMM semantics.
 """
@@ -22,7 +23,7 @@ from typing import Any, Mapping, Sequence
 from hymo.document import SWMMDocument, SWMMRecord
 from hymo.schemas import FIELDS, interpret_fields
 
-from .editing import Change, _equal, _key, _publish_file, _stage_file, preview_changes
+from .editing import Change, _equal, _key, _publish_file, _record_comment, _stage_file, preview_changes
 from .geometry import VertexChange
 
 
@@ -172,6 +173,15 @@ def _effects(baseline: SWMMDocument, candidate: SWMMDocument) -> tuple[list[dict
                 rows.append(_row(section, row.tokens[0], "opaque_tail", old_tail or None, new_tail or None,
                                  "ordered lexical tail", old.line_index + 1 if old else None,
                                  new.line_index + 1 if new else None))
+            if section == "JUNCTIONS":
+                previous_comment = _record_comment(baseline, old) if old else None
+                observed_comment = _record_comment(candidate, new) if new else None
+                if previous_comment != observed_comment:
+                    row = new or old
+                    assert row is not None
+                    rows.append(_row(section, row.tokens[0], "comment", previous_comment, observed_comment,
+                                     "inline comment text", old.line_index + 1 if old else None,
+                                     new.line_index + 1 if new else None))
     return rows, coverage
 
 
