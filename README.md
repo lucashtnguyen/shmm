@@ -60,6 +60,44 @@ interface. Legacy sections are represented as pandas DataFrames through `hymo`.
 subcatchment polygons. These format map geometry; they do not establish
 hydraulic parameters, units, coordinate systems, or datum validity.
 
+### Shapefile export for model QA
+
+`shmm.export_shapefiles` exports the actual written network as separate
+`nodes.shp` and `links.shp` layers, with explicit CRS sidecars, hydraulic fields,
+assumption/placeholder flags and component/island identifiers. It reads through
+hymo and does not edit the INP or infer missing engineering values. All four
+node and five link families participate, including pumps and storage.
+
+Supply `GISAnnotation` / `GISFlag` records from the upstream preparation and the
+exact candidate SHA-256. Each distinct flag gets its own integer GIS field;
+`manifest.json` maps the short DBF names to complete flag names. `QA_KEY` joins
+each feature to untruncated parameter-specific evidence in `qa_features.json`.
+Unknown historical provenance stays `QA_COVER=unknown`; a number such as 12.345,
+999 or 0.013 by itself never establishes a placeholder or assumption.
+
+Symbolize `ISLAND_ID` to distinguish each unsupported new island, or `COMP_ID`
+to show every component. Supply the original baseline so inherited independent
+basins are preserved as baseline-connected components. `islands.csv` lists only
+unsupported new islands; `components.csv` and `components.json` retain all groups
+and their asset membership. Without a baseline, unanchored status is unknown.
+Nominal graph routes are separate from hydraulic simulation.
+
+Install the optional GIS dependencies with `python -m pip install -e ".[gis]"`.
+Call the exporter from Python with the written hymo document, a new private
+output directory, explicit `crs`, original `baseline` and finished annotations.
+Missing coordinates produce null shapes with visible geometry flags; no assets
+are silently dropped. Existing output directories are never overwritten. The
+bundle is staged and read back before publication. Inspect `QA_COVER`,
+`PLACEHOLDR`, `ASSUMED`, `PROVISION`, `QA_FLAGS`, individual flag fields and
+`ISLAND_ID`; a missing flag is not proof of accepted engineering data.
+
+See [the spatial export contract](docs/spatial_export.md) for field meanings,
+units, shapefile limitations, the caller contract and manual review steps.
+Run `python -m pytest tests/test_spatial.py` with the GIS extra installed. Tests
+cover all families, exact vertices, case-insensitive identities, baseline basins,
+new islands, null geometry, source preservation, stale evidence, long UTF-8 flags,
+DBF readback, CRS, deterministic components and failed-publication cleanup.
+
 ### Inputs, outputs, and QA/QC
 
 - New inputs are an explicit baseline INP and finished `Change` instructions.

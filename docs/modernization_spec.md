@@ -9,6 +9,14 @@
 
 Status: Draft v0.3 for implementation planning. Manually maintained.
 
+Implementation note (2026-10-15): SHMM now exports the actual written network
+as verified node/link shapefiles with explicit CRS, caller-supplied assumption
+and placeholder flags, per-flag DBF fields, full evidence sidecars, component IDs
+and baseline-aware island registers. Unknown provenance remains explicit.
+See [spatial export](spatial_export.md). This adds a GIS review artifact;
+interactive map/profile rendering and upstream engineering preparation remain
+separate responsibilities.
+
 Implementation note (2026-10-13): the initial preserving reading/editing
 foundation now exists. hymo 0.2.1 owns immutable document reading, four named
 section schemas, and ordered interior-vertex reading; SHMM 0.1.2 owns explicit

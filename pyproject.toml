@@ -1,6 +1,6 @@
 # Author: Lucas HT Nguyen
 # Contact: https://github.com/lucashtnguyen
-# Date: 2026-10-14
+# Date: 2026-10-15
 # Last modified by: Lucas HT Nguyen
 
 [build-system]
@@ -24,7 +24,7 @@ Contact = "https://github.com/lucashtnguyen"
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
-gis = ["geopandas"]
+gis = ["geopandas", "pyshp>=2.3,<4", "pyproj>=3.6"]
 
 [tool.setuptools.packages.find]
 include = ["shmm*"]

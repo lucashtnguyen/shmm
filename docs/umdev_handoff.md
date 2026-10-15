@@ -120,6 +120,21 @@ all cards but does not imply complete semantic understanding of every SWMM card.
 
 ## Developer README
 
+### Spatial QA handoff
+
+After the written-model diff reconciles, the orchestrator may call
+`shmm.export_shapefiles` with that actual document, explicit map CRS, original
+baseline and model-hash-bound `GISAnnotation` records. UMDEV/project adapters own
+the exact join from applied assignment evidence to written node/link IDs. Include
+all applied assumption, provisional datum, placeholder and QA flags; omit held
+assets and rejected alternatives. Field-specific evidence remains in the spatial
+sidecar. Do not infer placeholders from numerical values or label inherited
+unreviewed provenance complete. SHMM writes each supplied flag and computes
+component/island membership from the written network without importing UMDEV.
+See the [spatial contract](spatial_export.md) for schema, limits and symbolization.
+
+### Model comparison APIs
+
 `shmm.preview_model_diff(document, changes, vertex_changes=(), evidence=None,
 expected_hash=None)` returns `ModelDiff(candidate_data, report)` without files.
 `shmm.edit_model` remains the preserving publisher. Read its actual output with
