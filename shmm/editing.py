@@ -2,7 +2,7 @@
 
 Author: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-13
+Date: 2026-10-15
 Last modified by: Lucas HT Nguyen
 Notes: Manually maintained. hymo reads; SHMM modifies and writes. Values use
 baseline SWMM field units; no hydraulic parameter or datum inference.
@@ -256,6 +256,19 @@ def _validate_candidate(document: SWMMDocument, touched: set[tuple[str, str]]) -
         if section == "XSECTIONS" and identity not in _records(document, "CONDUITS"):
             raise NotImplementedError("STUB_XSECTION_LINK_TYPES: only conduit cross-section edits are supported")
         _validate_fields(section, record.tokens[0], _field_values(section, record), options)
+        if section in {"CONDUITS", "XSECTIONS"}:
+            cross_section = cross_sections[identity]
+            values = _field_values("XSECTIONS", cross_section)
+            if _key(values["shape"]) == "FORCE_MAIN":
+                # EPA 5.2.4 project.c defaults to Dynamic Wave and H-W. Only
+                # Dynamic Wave uses the supplied pressure friction equation;
+                # do not accept a touched pressure pipe as an ordinary conduit.
+                # This is a supported editing contract, not full engine QA.
+                if options.get("FLOW_ROUTING", "DYNWAVE") != "DYNWAVE":
+                    raise ValueError("FORCE_MAIN editing requires FLOW_ROUTING DYNWAVE")
+                if options.get("FORCE_MAIN_EQUATION", "H-W") not in {"H-W", "D-W"}:
+                    raise ValueError("FORCE_MAIN_EQUATION must be H-W or D-W")
+                _validate_fields("XSECTIONS", cross_section.tokens[0], values, options)
 
 
 def _patch_line(line: str, record: SWMMRecord, section: str, values: Mapping[str, str]) -> str:

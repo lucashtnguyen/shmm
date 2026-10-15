@@ -1,8 +1,9 @@
 """Verify explicit SWMM editing, source preservation, and safe publication.
 
 Author: Lucas HT Nguyen
+Last modified by: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-13
+Date: 2026-10-15
 Manually maintained synthetic contract cases; no private project data.
 """
 
@@ -273,6 +274,31 @@ def test_force_main_roughness_and_unsupported_existing_shape() -> None:
     data = BASELINE.replace(b"P1 CIRCULAR", b"P1 RECT_CLOSED")
     with pytest.raises(NotImplementedError, match="STUB_XSECTION_SHAPES"):
         apply_changes(document(data), [change("XSECTIONS", geom1=2)])
+
+
+@pytest.mark.parametrize("section", ["CONDUITS", "XSECTIONS"])
+@pytest.mark.parametrize("option,match", [
+    (b"FLOW_ROUTING KINWAVE", "requires FLOW_ROUTING DYNWAVE"),
+    (b"FORCE_MAIN_EQUATION MANNING", "FORCE_MAIN_EQUATION must be H-W or D-W"),
+])
+def test_touched_force_main_requires_supported_pressure_options(
+    section: str, option: bytes, match: str,
+) -> None:
+    """Pressure context is checked for either link or cross-section edits."""
+    data = BASELINE.replace(b"P1 CIRCULAR 1 0 0 0", b"P1 FORCE_MAIN 1 120 0 0")
+    data = data.replace(b"FLOW_UNITS CFS", b"FLOW_UNITS CFS\r\n" + option)
+    values = {"length": 125} if section == "CONDUITS" else {"geom1": 1.5}
+    with pytest.raises(ValueError, match=match):
+        apply_changes(document(data), [change(section, **values)])
+
+
+def test_untouched_force_main_does_not_block_unrelated_junction_edit() -> None:
+    """Inherited pressure options remain subject to separate engine review."""
+    data = BASELINE.replace(b"P1 CIRCULAR 1 0 0 0", b"P1 FORCE_MAIN 1 120 0 0")
+    data = data.replace(b"FLOW_UNITS CFS", b"FLOW_UNITS CFS\r\nFLOW_ROUTING KINWAVE")
+    result = apply_changes(document(data), [change("JUNCTIONS", "N1", surcharge_depth=999)])
+    assert b"N1 10 5 0 999" in result.data
+    assert b"FLOW_ROUTING KINWAVE" in result.data
 
 
 def test_hash_precondition_and_preview_apply_are_deterministic() -> None:

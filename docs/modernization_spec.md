@@ -2,10 +2,10 @@
 
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-14
+- Date: 2026-10-15
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-14
+- Date: 2026-10-15
 
 Status: Draft v0.3 for implementation planning. Manually maintained.
 
@@ -43,6 +43,26 @@ serialized `Change` and `VertexChange` sequences, evidence keyed by `source_key`
 and upstream prepared/config/source-manifest identities. SHMM receives finished
 values in baseline units and coordinates. Unresolved assets are upstream holds,
 not zero defaults or implicit deletions.
+
+Implemented pressure handoff (2026-10-15): umdev can supply new conduit records
+with `XSECTIONS.shape=FORCE_MAIN`, explicit diameter and positive `geom2`, and
+separate conduit Manning `roughness`. `geom2` means dimensionless Hazen-Williams
+C under `H-W`, or Darcy-Weisbach roughness height in inches for US flow units
+and millimetres for SI flow units under `D-W`. The existing baseline options
+govern the meaning; SHMM does not select or convert the equation. Touched
+force-main conduits/cross sections require `DYNWAVE` and a supported equation;
+absent options use EPA defaults `DYNWAVE` and `H-W`. Untouched inherited pressure
+records are preserved without broadening unrelated edits into engine validation.
+
+umdev supplies role-specific junction `surcharge_depth` instructions, including
+999 model length units for a reviewed sealed pressure connection. Open receiving
+manholes and wet wells require their own explicit roles and retain their reviewed
+representation. SHMM writes finished junction values; it does not infer sealing
+from GIS connectivity, set storage surcharge, fabricate node profiles, or create
+pump curves/controls. Evidence must identify role, units, coefficient basis, and
+provisional assumptions. Both review diffs must expose these requested effects.
+The surcharge allowance is additional head above maximum depth before flooding,
+not an established pressure rating. Missing upstream parameters remain holds.
 
 Before publication, generate a **preview diff** comparing baseline to the
 proposed candidate, including old/new values and units, ordered geometry,

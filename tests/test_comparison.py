@@ -1,8 +1,9 @@
 """Verify manual QA diffs against requested and unexpected model effects.
 
 Author: Lucas HT Nguyen
+Last modified by: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-14
+Date: 2026-10-15
 Notes: Synthetic, manually maintained regression and preservation tests.
 """
 
@@ -71,6 +72,58 @@ def test_written_file_readback_matches_preview(tmp_path: Path) -> None:
     assert written.report['verification']['matches_expected']
     assert written.report['effects'] == preview.report['effects']
     assert source.read_bytes() == BASELINE
+
+
+@pytest.mark.parametrize("equation,pressure_coefficient", [("H-W", 120), ("D-W", 0.15)])
+def test_force_main_and_sealed_connection_have_matching_review_diffs(
+    tmp_path: Path, equation: str, pressure_coefficient: float,
+) -> None:
+    """Explicit pressure parameters and sealing preserve an open receiver.
+
+    Notes
+    -----
+    Synthetic US units: diameter and surcharge depth are feet. H-W C is
+    dimensionless; D-W roughness height is inches. The conduit Manning value
+    is supplied independently and must never replace the pressure coefficient.
+    """
+    data = BASELINE.replace(
+        b"FLOW_UNITS CFS", f"FLOW_UNITS CFS\r\nFLOW_ROUTING DYNWAVE\r\nFORCE_MAIN_EQUATION {equation}".encode(),
+    )
+    changes = [
+        Change("add", "JUNCTIONS", "PRESSURE_A", {
+            "invert_elevation": 7, "max_depth": 5, "surcharge_depth": 999,
+        }, "pressure-node"),
+        Change("add", "CONDUITS", "FM_A", {
+            "inlet_node": "PRESSURE_A", "outlet_node": "N2", "length": 200,
+            "roughness": 0.014, "inlet_offset": 0, "outlet_offset": 0,
+        }, "pressure-link"),
+        Change("add", "XSECTIONS", "FM_A", {
+            "shape": "FORCE_MAIN", "geom1": 1, "geom2": pressure_coefficient,
+            "geom3": 0, "geom4": 0,
+        }, "pressure-section"),
+    ]
+    evidence = {"pressure-node": {
+        "basis": "reviewed sealed pressure connection", "units": {"surcharge_depth": "ft"},
+        "qa_flags": ["provisional_pressure_sealing"],
+    }}
+    source = tmp_path / "source.inp"
+    target = tmp_path / "candidate.inp"
+    source.write_bytes(data)
+    baseline = read_document(source)
+    preview = preview_model_diff(baseline, changes, evidence=evidence)
+    edit_model(source, changes, target, tmp_path / "audit.json")
+    written = compare_written_model(baseline, read_document(target), changes, evidence=evidence)
+    assert written.report["verification"]["matches_expected"]
+    assert written.report["effects"] == preview.report["effects"]
+    assert target.read_bytes() == preview.candidate_data
+    assert b"PRESSURE_A 7 5 0 999" in target.read_bytes()
+    reread = read_document(target)
+    assert reread.records("JUNCTIONS")[1].tokens == ("N2", "8", "6")
+    assert reread.records("CONDUITS")[-1].tokens[4] == "0.014"
+    assert reread.records("XSECTIONS")[-1].tokens[3] == str(pressure_coefficient)
+    pressure_node = next(row for row in preview.report["effects"] if row["object_id"] == "PRESSURE_A")
+    assert pressure_node["evidence"] == [evidence["pressure-node"]]
+    assert source.read_bytes() == data
 
 
 @pytest.mark.parametrize('old,new', [

@@ -2,7 +2,7 @@
 
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-14
+- Date: 2026-10-15
 
 ## Summary
 
@@ -117,6 +117,28 @@ QA flag. umdev supplies separate baseline/candidate topology reports for inherit
 basins, introduced islands and possible held connectors. Review these alongside
 both model diffs; SHMM does not resolve connector parameters or station policies.
 See the [handoff contract and review procedure](docs/umdev_handoff.md).
+
+For pressure pipes, umdev supplies an explicit `FORCE_MAIN` cross section,
+its diameter and positive `geom2` pressure coefficient, plus the separate
+conduit `roughness` field. `geom2` is Hazen-Williams C for `H-W`, or absolute
+Darcy-Weisbach roughness height in inches (US) / millimetres (SI) for `D-W`;
+it is never Manning n. SHMM checks touched force-main links/cross sections
+against Dynamic Wave routing and the baseline's supported friction equation.
+The documented EPA defaults apply when these options are absent: `DYNWAVE`
+and `H-W`. Unrelated edits do not revalidate inherited pressure parameters.
+
+Sealing is an explicit **junction** instruction: `surcharge_depth=999` means
+999 additional model length units above the junction's maximum depth before
+flooding. The project policy and node role belong to umdev: sealed pressure
+connections receive the supplied value, while open discharge manholes and wet
+wells retain their separately reviewed representation. SHMM does not seal every
+endpoint automatically, invent a rim/floor, convert storage to a junction, or
+infer a pump/curve/control from a GIS force-main label. Include the pressure
+coefficient basis, node role, units, and any provisional sealing decision in
+handoff evidence; inspect those effects in both review diffs. A 999 surcharge
+allowance suppresses model flooding and is not a verified pressure rating.
+These field meanings follow the [EPA SWMM 5.2 manual](https://www.epa.gov/system/files/documents/2022-04/swmm-users-manual-version-5.2.pdf)
+and [EPA 5.2.4 solver defaults](https://github.com/USEPA/Stormwater-Management-Model/blob/v5.2.4/src/solver/project.c).
 
 ### Limitations and unresolved information
 
