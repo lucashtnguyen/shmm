@@ -137,4 +137,3 @@ Focused tests: `python -m pytest tests/test_spatial.py tests/test_physical_top_s
 
 Format/API references: [PyShp](https://github.com/GeospatialPython/pyshp) and
 [pyproj CRS](https://pyproj4.github.io/pyproj/stable/api/crs/crs.html).
-
