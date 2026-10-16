@@ -101,6 +101,14 @@ def test_inline_forcing_preserves_duplicate_order_and_object_basis() -> None:
     assert "placeholder" in result.diff.report["raw_text_diff"]
 
 
+def test_constant_inflow_allows_empty_quoted_timeseries_and_pattern() -> None:
+    """Baseline-only external inflows need no artificial timeseries reference."""
+    result = preview([patch("INFLOWS", 'N1 FLOW "" FLOW 1 1 0.0001 ""'),
+                      patch("DWF", 'N1 FLOW 0.0001 "" ""')])
+    assert document(result.data).records("INFLOWS")[0].tokens[2] == ""
+    assert result.diff.report["verification"]["matches_expected"]
+
+
 @pytest.mark.parametrize("requests,match", [
     ([patch("JUNCTIONS", "N1 0 10", "n1 0 10")], "duplicate ID"),
     ([patch("JUNCTIONS", "N1 0 10", "N2 0 10", "end 0 10")], "Duplicate object ID"),

@@ -231,15 +231,17 @@ def _validate_dependencies(document: SWMMDocument, patched_sections: set[str], *
     for row in document.records("INFLOWS"):
         if len(row.tokens) < 3:
             raise ValueError("[INFLOWS] requires node, constituent and timeseries")
-        if row.tokens[2] != "*":
+        # EPA INFLOWS permits an empty quoted timeseries for a constant
+        # baseline-only inflow. hymo correctly retains that token as ''.
+        if row.tokens[2] not in {"", "*"}:
             _require_reference(row.tokens[2], timeseries, "[INFLOWS] timeseries")
-        if len(row.tokens) > 7 and row.tokens[7] != "*":
+        if len(row.tokens) > 7 and row.tokens[7] not in {"", "*"}:
             _require_reference(row.tokens[7], patterns, "[INFLOWS] pattern")
     for row in document.records("DWF"):
         if len(row.tokens) < 3:
             raise ValueError("[DWF] requires node, constituent and average value")
         for identity in row.tokens[3:]:
-            if identity != "*":
+            if identity not in {"", "*"}:
                 _require_reference(identity, patterns, "[DWF] pattern")
     for section in ("TREATMENT",):
         for row in document.records(section):
