@@ -2,12 +2,22 @@
 
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-15
+- Date: 2026-10-16
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-15
+- Date: 2026-10-16
 
 Status: Draft v0.3 for implementation planning. Manually maintained.
+
+Implementation note (2026-10-16): finished whole-section `SectionPatch`
+publication now supports explicitly supplied final network/forcing records,
+including coupled node/link deletions, pump outlet rewiring and outfall
+replacement. Mandatory source hashes, section/object basis, independent preview
+and written-model comparisons, preserved-section hashes and optional single
+component/directed-terminal gates are implemented. This is a separate coarse
+contract; the narrow `Change` API still has its existing add/update limits.
+Upstream remains responsible for engineering values, aggregation and boundary
+choices. See [finished section contract](umdev_handoff.md#finished-section-contract).
 
 Implementation note (2026-10-15): SHMM now exports the actual written network
 as verified node/link shapefiles with explicit CRS, caller-supplied assumption

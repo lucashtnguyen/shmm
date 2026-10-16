@@ -2,7 +2,7 @@
 
 - Author: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-13
+- Date: 2026-10-16
 - Last modified by: Lucas HT Nguyen
 - Maintenance: manually maintained alongside hymo reading and SHMM editing tests.
 
@@ -44,6 +44,19 @@ legacy preserved text, not certified 5.2.4 syntax.
   outside the initial contract.
 - **Preserved:** unrelated original text is retained. Deferred sections cannot
   be directly edited through the initial operation contract.
+
+### Finished whole-section contract (2026-10-16)
+
+The matrix below describes the narrow `Change` record API. A separate
+`SectionPatch` API now allows complete explicitly supplied section replacements
+or deletions, with mandatory basis/hash and preview/readback comparisons.
+This does not turn lexical rows into a complete interpreted EPA grammar.
+Its additional checks cover pump/outfall/storage curve references, forcing
+timeseries/pattern references, control object clauses, tags, report/profile
+lists and optional final connectivity/routes. Unknown sections are preserved
+literally and their dependency meaning remains an explicit review limitation.
+See [the finished section contract](umdev_handoff.md#finished-section-contract)
+for exact scope. The table's deferred field-level operations remain deferred.
 
 ### Section matrix
 

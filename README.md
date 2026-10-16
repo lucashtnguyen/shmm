@@ -2,7 +2,7 @@
 
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-15
+- Date: 2026-10-16
 
 ## Summary
 
@@ -42,9 +42,11 @@ text and produces a separate candidate plus a before/after audit.
 
 SHMM 0.1.2 also produces baseline-to-proposed preview diffs and independent
 baseline-to-written-model diffs, with source evidence and upstream QA flags.
-The larger specification remains a plan for complete GIS ingestion,
-deletion/rewiring, interactive map/profile review, and additional section editing.
-These features are not implied by the current implementation. The
+Finished whole-section replacement now supports explicit final topology,
+deletions, pump rewiring and forcing replacement with mandatory source hashes
+and review evidence; see the section publication workflow below. Fine-grained
+record deletion/rewiring, interactive map/profile review and complete section
+semantics remain deferred. The
 [section coverage matrix](docs/swmm_section_coverage.md) inventories 57 EPA
 SWMM 5.2.4 sections and identifies implemented checks and deferred contracts.
 
@@ -59,6 +61,44 @@ interface. Legacy sections are represented as pandas DataFrames through `hymo`.
 `shmm/gis.py` contains helpers for node coordinates, link vertices, and
 subcatchment polygons. These format map geometry; they do not establish
 hydraulic parameters, units, coordinate systems, or datum validity.
+
+### Finished section publication
+
+For an upstream-prepared final network, `SectionPatch` supplies a complete
+section body, a unique `source_key`, a required `basis`, and optional
+`object_evidence` keyed by model object ID. Bodies use individual text lines
+without line endings; include the comments and existing records to retain.
+Inline comments can identify interpolated values, literal placeholders and
+merged source pipes. SHMM does not choose any of those engineering values.
+An empty body explicitly clears the records; `delete=True` removes an existing
+section. Unmentioned sections preserve their original text exactly.
+
+`preview_section_patches` requires `baseline_sha256` and returns exact bytes,
+an audit and a regular `ModelDiff`. It checks shared node/link ID collisions,
+link endpoints, cross sections, coordinates, supported loads, curves and
+timeseries references, controls, tags, profile lists and report selections.
+Optional `require_connected=True` requires exactly one weakly connected group;
+`require_terminal_routes=True` requires a declared directed route from every
+node to an outfall. These checks follow declared endpoints, not simulated flow.
+Outfalls themselves have valid zero-link terminal routes.
+
+`publish_section_patches` publishes a **new** candidate, both JSON/CSV/HTML
+comparisons and a completion audit. It refuses existing destinations, rechecks
+the source, reads back the staged and published model, independently replays
+the finished requests and verifies exact bytes. The source is never overwritten.
+`compare_written_sections` can also independently check a separately published
+model. Every section request retains complete before/after text, hashes and
+basis; effect rows join the supplied object evidence. Unknown section bodies
+remain literal, and syntax beyond the documented reference checks still
+requires solver validation. A successful publication is faithful serialization,
+not engineering acceptance of assumptions or a claim that the model runs.
+
+Inspect both diffs and the audit before using the candidate. Confirm removed
+objects have their controls, loads and geometry reconciled; inspect pump
+outlets, terminal replacements, source memberships of merged pipes and all
+assumption comments in a profile viewer. Require the completion audit and its
+matching candidate hash; interruption can leave an incomplete transaction.
+See [the handoff contract](docs/umdev_handoff.md#finished-section-contract).
 
 ### Shapefile export for model QA
 
@@ -206,7 +246,7 @@ are signed absolute elevations and may use `*`. Cross-section diameters use
 length units, not flow units or GIS inches. FORCE_MAIN Geom2 depends on the
 selected friction equation and is not conduit Manning roughness.
 
-Renames, deletion, endpoint rewiring, shape conversion, other cross-section
+Within the narrow `Change` API, renames, deletion, endpoint rewiring, shape conversion, other cross-section
 shapes, complete loading/control dependencies, and unit/datum conversion are
 deferred and fail explicitly when requested. Nonempty unknown/vendor cards or
 unresolved abbreviated headers block hydraulic edits. Unchanged supported-but-

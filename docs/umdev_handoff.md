@@ -3,7 +3,7 @@
 - Author: Lucas HT Nguyen
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-15
+- Date: 2026-10-16
 - Status: Implemented comparison API; upstream envelope fields are a versioned contract.
 
 ## Summary
@@ -119,6 +119,60 @@ raw text and model viewer provide manual review. Lexical comparison covers
 all cards but does not imply complete semantic understanding of every SWMM card.
 
 ## Developer README
+
+### Finished section contract
+
+The additive `Change` envelope remains supported. For a dependency-complete
+finished network, an upstream adapter may instead construct `SectionPatch`
+objects. Each has `section`, `lines` (the **entire** final body, one string per
+line without newline characters), `source_key`, `basis`, optional JSON-compatible
+`object_evidence` keyed by model ID, and optional `delete`. Include all retained
+records and comments in every replaced body. An empty body explicitly clears
+rows. `delete=True` requires an existing section and an empty body and removes
+that section's header too. No unmentioned section or object is implicitly removed.
+
+Upstream owns removal/aggregation decisions, pump outlet and pressure-node
+mapping, outfall replacement and boundary assumptions. It must supply the final
+coherent records, redistribute any approved loads explicitly, and carry source
+membership/assumption evidence per affected object. SHMM performs no automatic
+cascade, pipe merge, invert interpolation, datum conversion or loading transfer.
+
+Call `preview_section_patches(document, patches, baseline_sha256=...)` first.
+The returned `SectionPatchResult` exposes `data`, `audit`, and `diff` (a
+`ModelDiff` accepted by `write_diff_reports`). Optional `require_connected` and
+`require_terminal_routes` gates apply to final endpoint topology. A terminal
+route ends at an OUTFALL, including the outfall itself; no inference about
+hydraulic reversals or running pump availability is made.
+
+Call `publish_section_patches(source_path, output_path, patches,
+baseline_sha256=..., audit_path=..., report_directory=...)` to write a new
+candidate. Output/audit/report parents must exist and every destination must be
+absent. `report_directory` defaults to the candidate parent; `preview_prefix`
+and `written_prefix` default to `preview_diff` and `written_model_diff`.
+Both report sets contain JSON, CSV and HTML. `encoding` defaults to UTF-8;
+source and output paths must differ. The same topology gates apply. Publication
+returns a populated `written_diff`, independently replayed from the frozen
+source requests. `compare_written_sections` is the separate readback API.
+
+The versioned operation contract is `finished_section_patch_v1`. The audit
+records complete before/after section text, SHA-256 hashes, mandatory basis,
+object evidence, all preserved-section hashes and final graph membership.
+The completion audit has `status="published"` and is published last. Require
+its candidate hash and successful exact-byte reconciliation before consuming
+the model. A process interruption may leave an incomplete transaction; caught
+failures clean up only files created by this call. Destinations are never
+overwritten, including concurrently created files.
+
+Supported checks include node/link shared namespaces, all link endpoints,
+required cross sections and their eligible link types, finite coordinates,
+known node/link ancillary references, pump/storage/outfall curve references,
+rain/inflow timeseries and pattern references, DWF patterns, subcatchment
+outlets, diverted links, control object clauses, tags, report node/link lists
+and profile link lists. The existing named-field contracts check replaced
+junction/conduit/coordinate and circular/force-main cross-section values.
+Other grammar, external file availability and hydraulic validity remain solver
+and engineering QA responsibilities. Unchanged vendor sections remain literal;
+their dependency meaning is unknown and must be reviewed if topology changes.
 
 ### Spatial QA handoff
 
