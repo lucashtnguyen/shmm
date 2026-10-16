@@ -115,6 +115,13 @@ each feature to untruncated parameter-specific evidence in `qa_features.json`.
 Unknown historical provenance stays `QA_COVER=unknown`; a number such as 12.345,
 999 or 0.013 by itself never establishes a placeholder or assumption.
 
+Optional `GISPhysicalTop` evidence exports separate `PHYS_DPH`, `PHYS_TOP`,
+`PHYS_KIND` and `PHYS_ASS` fields. Native `MAX_DEPTH` remains the written hydraulic
+capacity, which may be numerical pressure storage rather than ground. Physical
+depths use native model length units independently of map CRS. No supplied
+physical evidence means NULL/unknown; legacy depth rows do not establish survey.
+Placeholder literals and full source provenance remain in the QA sidecar.
+
 Symbolize `ISLAND_ID` to distinguish each unsupported new island, or `COMP_ID`
 to show every component. Supply the original baseline so inherited independent
 basins are preserved as baseline-connected components. `islands.csv` lists only

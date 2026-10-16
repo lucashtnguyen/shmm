@@ -1,8 +1,9 @@
 """Export actual SWMM network geometry and supplied QA evidence for GIS review.
 
 Author: Lucas HT Nguyen
+Last modified by: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-15
+Date: 2026-10-16
 Manually maintained. No parameter inference, reprojection or model editing.
 """
 from __future__ import annotations
@@ -53,6 +54,37 @@ class GISFlag:
 
 
 @dataclass(frozen=True)
+class GISPhysicalTop:
+    """Explicit physical-top evidence separate from native hydraulic capacity.
+
+    Parameters
+    ----------
+    depth : float
+        Physical top minus the actual model floor, in NATIVE model length units.
+        This is independent of map CRS units. SHMM performs no unit conversion.
+    category : str
+        ``observed``, ``assumption``, ``placeholder`` or ``provisional``. The
+        caller owns evidence quality; legacy model rows do not establish survey.
+    basis, source_key : str
+        Required nonempty interpretation and exact upstream evidence identity.
+    evidence : mapping
+        Required nonempty JSON evidence; retain raw literals, source hashes and
+        vertical basis here. A placeholder must retain its placeholder category.
+
+    Notes
+    -----
+    Export derives PHYS_TOP from the actual written floor plus this depth. Native
+    MAX_DEPTH is never replaced. Missing physical evidence stays NULL/unknown.
+    """
+
+    depth: float
+    category: str
+    basis: str
+    source_key: str
+    evidence: Mapping[str, Any] = dataclass_field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class GISAnnotation:
     """Finished upstream QA evidence for one exact model object.
 
@@ -69,6 +101,9 @@ class GISAnnotation:
         not an engineering determination by SHMM. Missing annotations are unknown.
     source_key : str, optional
         Stable upstream evidence identity, retained in full JSON.
+    physical_top : GISPhysicalTop, optional
+        Node-only physical-top evidence in native model length units, separate
+        from written MAX_DEPTH. Omission never infers ground from capacity.
     """
 
     family: str
@@ -76,6 +111,7 @@ class GISAnnotation:
     flags: Sequence[GISFlag] = ()
     coverage: str = "partial"
     source_key: str = ""
+    physical_top: GISPhysicalTop | None = None
 
 
 # DBF names are explicit and at most ten ASCII bytes. Full IDs are never truncated.
@@ -90,7 +126,9 @@ _FIELDS = (
     ("PROVISION", "N", 2, 0), ("QA_COUNT", "N", 8, 0),
     ("QA_FLAGS", "C", 254, 0), ("QA_TRUNC", "N", 1, 0),
     ("INV_ELEV", "N", 24, 9), ("MAX_DEPTH", "N", 24, 9),
-    ("SUR_DEPTH", "N", 24, 9), ("LENGTH", "N", 24, 9),
+    ("SUR_DEPTH", "N", 24, 9), ("PHYS_DPH", "N", 24, 9),
+    ("PHYS_TOP", "N", 24, 9), ("PHYS_KIND", "C", 12, 0),
+    ("PHYS_ASS", "N", 2, 0), ("LENGTH", "N", 24, 9),
     ("ROUGHNESS", "N", 24, 9), ("IN_OFFSET", "N", 24, 9),
     ("OUT_OFFSET", "N", 24, 9), ("XS_SHAPE", "C", 32, 0),
     ("GEOM1", "N", 24, 9), ("GEOM2", "N", 24, 9),
@@ -241,6 +279,20 @@ def _annotations(annotations: Sequence[GISAnnotation], nodes: Mapping[str, dict]
             raise ValueError(f"Annotation does not identify an actual model asset: {key}")
         if key in indexed or annotation.coverage not in {"partial", "complete"}:
             raise ValueError("Duplicate annotation or invalid provenance coverage")
+        physical = annotation.physical_top
+        if physical is not None:
+            if family != "node" or not isinstance(physical, GISPhysicalTop):
+                raise ValueError("Physical tops require a node GISPhysicalTop")
+            if (isinstance(physical.depth, bool) or not isinstance(physical.depth, (int, float))
+                    or not math.isfinite(physical.depth) or physical.depth < 0):
+                raise ValueError("Physical top depth must be finite and nonnegative in native units")
+            if not isinstance(physical.category, str) or physical.category not in {"observed", "assumption", "placeholder", "provisional"}:
+                raise ValueError("Unsupported physical top provenance category")
+            if any(not isinstance(value, str) or not value.strip() or not value.isprintable()
+                   for value in (physical.basis, physical.source_key)):
+                raise ValueError("Physical tops require nonempty printable basis and source_key")
+            if not isinstance(physical.evidence, Mapping) or not physical.evidence:
+                raise ValueError("Physical tops require nonempty source evidence")
         for flag in annotation.flags:
             if not flag.code.strip() or flag.category not in {"assumption", "placeholder", "provisional", "qa"}:
                 raise ValueError("Flags require a nonempty code and supported category")
@@ -275,6 +327,13 @@ def _attributes(family: str, key: str, row: Mapping[str, Any], component: Mappin
                 is_baseline: bool, no_outlet: bool) -> tuple[dict, dict]:
     """Prepare DBF symbology fields and full untruncated per-feature evidence."""
     flags = list(annotation.flags) if annotation else []
+    physical = annotation.physical_top if annotation else None
+    if physical is not None:
+        flags.append(GISFlag("physical_top_" + physical.category,
+                     physical.category if physical.category != "observed" else "qa",
+                     "physical_top", physical.basis,
+                     {"depth_native": physical.depth, "source_key": physical.source_key,
+                      "source_evidence": dict(physical.evidence)}))
     flags.extend(geometry_flags)
     codes = sorted({flag.code for flag in flags})
     summary = ";".join(codes)
@@ -291,13 +350,18 @@ def _attributes(family: str, key: str, row: Mapping[str, Any], component: Mappin
                  ASSUMED=int(bool(categories & {"assumption", "placeholder"})) if annotation else -1,
                  PLACEHOLDR=int("placeholder" in categories) if annotation else -1,
                  PROVISION=int("provisional" in categories) if annotation else -1,
-                 QA_COUNT=len(codes), QA_FLAGS=preview, QA_TRUNC=int(preview != summary))
+                 QA_COUNT=len(codes), QA_FLAGS=preview, QA_TRUNC=int(preview != summary),
+                 PHYS_DPH=physical.depth if physical else None,
+                 PHYS_TOP=_number(row["tokens"][1]) + physical.depth if physical else None,
+                 PHYS_KIND=physical.category if physical else "unknown",
+                 PHYS_ASS=int(physical.category != "observed") if physical else -1)
     full = {"qa_key": qa_key, "family": family, "object_id": row["object_id"],
             "section": row["section"], "component_id": component["component_id"],
             "island_id": component["island_id"], "coverage": coverage,
             "flags": [asdict(flag) for flag in flags],
             "source_key": annotation.source_key if annotation else "",
-            "model_tokens": list(row["tokens"])}
+            "model_tokens": list(row["tokens"]),
+            "physical_top": asdict(physical) if physical else None}
     return attrs, full
 
 
@@ -481,6 +545,7 @@ def export_shapefiles(document: SWMMDocument, output_directory: str | Path, *,
                     "fields": [row[0] for row in _FIELDS], "flag_fields": fields,
                     "model_options": [list(row.tokens) for row in document.records("OPTIONS")],
                     "verification": "shape geometry, records, flags, CRS and source hash verified",
+                    "physical_top_contract": "Explicit native-unit evidence only; PHYS_TOP=INV_ELEV+PHYS_DPH; MAX_DEPTH remains written hydraulic capacity; missing physical provenance is unknown",
                     "files": {file.name: sha256(file.read_bytes()).hexdigest() for file in sorted(stage.iterdir())}}
         (stage / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         if sha256(document.data).hexdigest() != model_hash:

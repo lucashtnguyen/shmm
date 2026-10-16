@@ -12,7 +12,7 @@ from typing import Any
 from .editing import Change, ChangeResult, apply_changes, edit_model, preview_changes
 from .geometry import VertexChange
 from .comparison import ModelDiff, compare_written_model, preview_model_diff, write_diff_reports
-from .spatial import GISAnnotation, GISFlag, export_shapefiles
+from .spatial import GISAnnotation, GISFlag, GISPhysicalTop, export_shapefiles
 from .sections import (SectionPatch, SectionPatchResult, compare_written_sections,
                        preview_section_patches, publish_section_patches)
 
@@ -22,7 +22,7 @@ __contact__ = "https://github.com/lucashtnguyen"
 __version__ = "0.1.2"
 __all__ = ["Change", "ChangeResult", "VertexChange", "ModelDiff", "apply_changes", "preview_changes", "edit_model",
            "preview_model_diff", "compare_written_model", "write_diff_reports",
-           "GISAnnotation", "GISFlag", "export_shapefiles", "SectionPatch", "SectionPatchResult",
+           "GISAnnotation", "GISFlag", "GISPhysicalTop", "export_shapefiles", "SectionPatch", "SectionPatchResult",
            "preview_section_patches", "compare_written_sections", "publish_section_patches"]
 
 

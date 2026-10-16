@@ -1,8 +1,9 @@
 # Spatial model QA export
 
 - Author: Lucas HT Nguyen
+- Last modified by: Lucas HT Nguyen
 - Contact: https://github.com/lucashtnguyen
-- Date: 2026-10-15
+- Date: 2026-10-16
 - Manually maintained implementation contract.
 
 ## Summary
@@ -38,7 +39,9 @@ attribute table because they cannot appear on the map.
 | PROVISION | 1 supplied provisional evidence; 0 none supplied; -1 no annotation. |
 | QA_COUNT / QA_FLAGS | Unique flag count and a short display summary. |
 | QA_TRUNC | 1 when the summary exceeds 254 UTF-8 bytes; full details remain in JSON. |
-| INV_ELEV / MAX_DEPTH / SUR_DEPTH | Native model elevations, maximum depths and junction surcharge depths where applicable. |
+| INV_ELEV / MAX_DEPTH / SUR_DEPTH | Native written fields. MAX_DEPTH remains hydraulic capacity; numerical storage capacity must not be presented as physical ground. |
+| PHYS_DPH / PHYS_TOP | Explicit caller-supplied physical depth and actual native floor+depth; NULL when no physical-top evidence is supplied. |
+| PHYS_KIND / PHYS_ASS | Provenance category (observed/assumption/placeholder/provisional/unknown); assumption flag1 for assumption/placeholder/provisional,0 observed,-1 unknown. |
 | LENGTH / ROUGHNESS | Native conduit length and CONDUITS roughness field, without conversion. |
 | IN_OFFSET / OUT_OFFSET | Written conduit offsets, governed by LINK_OFFSETS. |
 | XS_SHAPE / GEOM1 / GEOM2 | Supplied cross-section values; their meaning depends on shape and model options. XS_SHAPE avoids ArcGIS's reserved Shape geometry field. |
@@ -100,11 +103,27 @@ flags, CRS and counts. It never overwrites an existing destination.
 
 Construct `GISFlag(code, category, field='', basis='', evidence={})`, with category
 assumption, placeholder, provisional or qa. Group these into
-`GISAnnotation(family, object_id, flags=(), coverage='partial', source_key='')`.
+`GISAnnotation(family, object_id, flags=(), coverage='partial', source_key='', physical_top=None)`.
 Family is node or link; IDs match ASCII case-insensitively. Multiple parameter
 flags belong in a single annotation per object. Annotation evidence must be JSON
 serializable. Supplying any annotations requires the SHA-256 of the exact model
 document; missing/stale hashes, unknown IDs and duplicate annotations fail.
+
+An optional node-only `GISPhysicalTop(depth, category, basis, source_key,
+evidence)` supplies finished physical-top evidence. Depth is nonnegative finite
+in NATIVE model length units; the XY CRS does not define its units or vertical
+datum. Basis, source identity and nonempty JSON evidence are required. The same
+exact annotation model hash binds this evidence to the written floor; SHMM derives
+PHYS_TOP=INV_ELEV+PHYS_DPH without editing native MAX_DEPTH. Legacy model rows
+should remain provisional unless stronger source review supports another category.
+A physical placeholder retains its placeholder category and raw literal in evidence.
+Each supplied category also receives a physical_top_* flag, so placeholder tops
+participate in PLACEHOLDR/ASSUMED symbology. No physical evidence leaves the fields
+NULL/unknown, including numerical capacity whose physical top is unknown. This
+contract does not infer ground from any native value. Upstream workflows must flag
+numerical capacity distinctly and omit unknown roofs in their profile viewers.
+Existing five positional GISAnnotation arguments retain their meaning; the optional
+physical_top field is appended. Full per-feature JSON retains the supplied record.
 
 Baseline comparison and geometry reading use hymo's immutable documents and
 lexical records. No dependency on UMDEV or project GIS is introduced. The caller
@@ -113,8 +132,9 @@ unapplied alternatives, and preserves the source-evidence hashes. The orchestrat
 should call this after successful written-model reconciliation and retain the
 bundle with that run. Re-export after regeneration to a new directory.
 
-Focused tests: `python -m pytest tests/test_spatial.py`. Full tests:
+Focused tests: `python -m pytest tests/test_spatial.py tests/test_physical_top_spatial.py`. Full tests:
 `python -m pytest`. GIS tests skip when optional dependencies are absent.
 
 Format/API references: [PyShp](https://github.com/GeospatialPython/pyshp) and
 [pyproj CRS](https://pyproj4.github.io/pyproj/stable/api/crs/crs.html).
+
