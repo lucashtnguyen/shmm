@@ -2,7 +2,7 @@
 
 - Last modified by: Lucas HT Nguyen
 - Contact: [GitHub profile](https://github.com/lucashtnguyen)
-- Date: 2026-10-16
+- Date: 2026-11-13
 
 ## Summary
 
@@ -99,6 +99,22 @@ outlets, terminal replacements, source memberships of merged pipes and all
 assumption comments in a profile viewer. Require the completion audit and its
 matching candidate hash; interruption can leave an incomplete transaction.
 See [the handoff contract](docs/umdev_handoff.md#finished-section-contract).
+
+### Loading-section validation
+
+`validate_loading(document)` checks a previewed or written model's loading
+records through hymo: interpretation issues, a missing `FLOW_UNITS` option,
+non-finite quantities, negative RDII areas, rows on undeclared nodes and
+duplicate node/constituent rows. A duplicate row fails because the engine keeps
+only the last row for a node and constituent in a section, so a writer must give
+each node at most one FLOW row per section. Negative flows or multipliers, FLOW
+units factors other than one, unread external series and rows with extra
+trailing tokens (read by the engine; the extra tokens are ignored) are
+warnings. `record_counts` (raw rows) is reported beside `counts` (typed rows).
+`loading_fingerprint(document)` hashes the interpreted rows and definitions,
+ignoring comments and row order, so a written model can be compared with its
+preview or a regression baseline. Neither function derives, scales or
+normalizes loads.
 
 ### Shapefile export for model QA
 

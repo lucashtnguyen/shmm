@@ -2,7 +2,7 @@
 
 Last modified by: Lucas HT Nguyen
 Contact: https://github.com/lucashtnguyen
-Date: 2026-10-16
+Date: 2026-11-13
 Notes: Manually maintained; legacy table APIs load only on request.
 """
 
@@ -15,6 +15,7 @@ from .comparison import ModelDiff, compare_written_model, preview_model_diff, wr
 from .spatial import GISAnnotation, GISFlag, GISPhysicalTop, export_shapefiles
 from .sections import (SectionPatch, SectionPatchResult, compare_written_sections,
                        preview_section_patches, publish_section_patches)
+from .loading import loading_fingerprint, validate_loading
 
 __author__ = "Lucas HT Nguyen"
 __email__ = ""
@@ -23,7 +24,8 @@ __version__ = "0.1.2"
 __all__ = ["Change", "ChangeResult", "VertexChange", "ModelDiff", "apply_changes", "preview_changes", "edit_model",
            "preview_model_diff", "compare_written_model", "write_diff_reports",
            "GISAnnotation", "GISFlag", "GISPhysicalTop", "export_shapefiles", "SectionPatch", "SectionPatchResult",
-           "preview_section_patches", "compare_written_sections", "publish_section_patches"]
+           "preview_section_patches", "compare_written_sections", "publish_section_patches",
+           "validate_loading", "loading_fingerprint"]
 
 
 def __getattr__(name: str) -> Any:
